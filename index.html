@@ -1,0 +1,2906 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7fb">
+  <title>JS ↔ Python | A side-by-side guide</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f6f7fb;
+      --surface: #fff;
+      --surface-soft: #f2f4fa;
+      --ink: #1c2030;
+      --muted: #6f7588;
+      --line: #e6e8f0;
+      --accent: #6254dc;
+      --accent-soft: #eeecff;
+      --green: #11856a;
+      --code: #171a28;
+      --code-ink: #e8eaf4;
+      --shadow: 0 16px 42px rgba(27, 31, 54, .06);
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --page: #11131b;
+      --surface: #191c27;
+      --surface-soft: #222635;
+      --ink: #f0f1f8;
+      --muted: #a4a9bb;
+      --line: #303444;
+      --accent: #a79bff;
+      --accent-soft: #2a2648;
+      --green: #65d8b8;
+      --code: #10121a;
+      --code-ink: #e8eaf4;
+      --shadow: 0 16px 42px rgba(0, 0, 0, .2);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font: 15px/1.6 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      transition: background .2s, color .2s;
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    a { color: inherit; }
+    .shell { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+
+    .topbar {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; font-weight: 750; letter-spacing: -.03em; }
+    .brand-mark {
+      width: 36px; height: 36px; display: grid; place-items: center;
+      border-radius: 11px; background: var(--accent); color: white; font-size: 15px;
+    }
+    .brand-name { font-size: 16px; }
+    .brand-name span { color: var(--muted); font-weight: 550; }
+    .top-actions { display: flex; gap: 10px; align-items: center; }
+    .theme-toggle, .menu-toggle {
+      display: inline-flex; align-items: center; gap: 9px;
+      border: 1px solid var(--line); background: var(--surface);
+      border-radius: 10px; padding: 9px 13px; cursor: pointer;
+    }
+    .theme-toggle:hover, .menu-toggle:hover { border-color: var(--accent); }
+    .dsa-link { text-decoration: none; }
+    .menu-toggle { display: none; }
+
+    .layout { display: grid; grid-template-columns: 252px minmax(0, 1fr); gap: 46px; padding: 34px 0 56px; }
+    aside { align-self: start; position: sticky; top: 24px; }
+    .sidebar-heading { color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: .12em; margin: 8px 0 14px; text-transform: uppercase; }
+    .topic-nav { display: grid; gap: 4px; }
+    .topic-link {
+      display: flex; align-items: center; gap: 11px; width: 100%;
+      padding: 10px 12px; border: 0; border-radius: 9px;
+      background: transparent; color: var(--muted); text-align: left; cursor: pointer;
+    }
+    .topic-link:hover { color: var(--ink); background: var(--surface-soft); }
+    .topic-link[aria-current="page"] { color: var(--accent); background: var(--accent-soft); font-weight: 680; }
+    .topic-number { width: 22px; text-align: center; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .sidebar-note { margin-top: 24px; padding: 15px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); font-size: 12px; }
+    .sidebar-note strong { display: block; color: var(--ink); margin-bottom: 4px; }
+
+    main { min-width: 0; }
+    .eyebrow { color: var(--accent); font-size: 12px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin: 10px 0 10px; font-size: clamp(32px, 5vw, 48px); line-height: 1.12; letter-spacing: -.055em; }
+    .intro { max-width: 720px; margin: 0; color: var(--muted); font-size: 16px; }
+    .topic-header { margin-bottom: 29px; }
+    .topic-meta { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 17px; }
+    .pill { padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); font-size: 12px; }
+    .pill strong { color: var(--ink); font-weight: 650; }
+
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .language-card {
+      min-width: 0; border: 1px solid var(--line); border-radius: 14px;
+      background: var(--surface); box-shadow: var(--shadow); overflow: hidden;
+    }
+    .language-head { display: flex; align-items: center; gap: 10px; padding: 15px 18px; border-bottom: 1px solid var(--line); }
+    .language-icon { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: #fff0d9; color: #b77200; font-size: 12px; font-weight: 800; }
+    .language-icon.py { background: #e3f2ff; color: #2775a8; }
+    .language-head h2 { margin: 0; font-size: 14px; }
+    .language-head span:last-child { margin-left: auto; color: var(--muted); font-size: 11px; }
+    .code-wrap { padding: 17px 18px 19px; }
+    pre { margin: 0; overflow-x: auto; color: var(--code-ink); background: var(--code); border-radius: 10px; padding: 17px; font: 12.5px/1.75 "SFMono-Regular", Consolas, "Liberation Mono", monospace; tab-size: 2; }
+    .code-label { display: flex; justify-content: space-between; align-items: center; margin: 0 1px 9px; color: var(--muted); font-size: 11px; }
+    .code-label span:last-child { color: var(--green); }
+    pre code { color: inherit; }
+    .tok-keyword { color: #c792ea; }
+    .tok-string { color: #c3e88d; }
+    .tok-number { color: #f78c6c; }
+    .tok-comment { color: #7f879f; font-style: italic; }
+    .tok-function { color: #82aaff; }
+    .tok-builtin { color: #ffcb6b; }
+    .tok-operator { color: #89ddff; }
+    .tok-punctuation { color: #bfc7d5; }
+    .method code .tok-keyword { color: #c792ea; }
+    .method code .tok-string { color: #c3e88d; }
+    .method code .tok-number { color: #f78c6c; }
+    .method code .tok-function { color: #82aaff; }
+    .method code .tok-builtin { color: #ffcb6b; }
+    .method code .tok-operator { color: #89ddff; }
+    .dsa-open { text-decoration: none; }
+    .layout.dsa-view { grid-template-columns: minmax(0, 1fr); }
+    .layout.dsa-view > #guide-sidebar { display: none; }
+    #dsa-app[hidden] { display: none; }
+    #dsa-app { min-width: 0; }
+    .dsa-layout { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 38px; padding: 30px 0 52px; }
+    .dsa-content { min-width: 0; }
+    .dsa-app-footer { display: flex; justify-content: space-between; gap: 12px; padding: 18px 0 24px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+    .dsa-section-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 0 0; color: var(--muted); font-size: 12px; }
+    .dsa-section-bar strong { color: var(--ink); }
+
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 15px; margin: 34px 0 12px; }
+    .section-heading h2 { margin: 0; font-size: 19px; letter-spacing: -.025em; }
+    .section-heading p { margin: 0; color: var(--muted); font-size: 12px; }
+    .methods-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .methods-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .methods-toolbar strong { font-size: 13px; }
+    .methods-toolbar span { color: var(--muted); font-size: 12px; }
+    .method-columns { display: grid; grid-template-columns: 1fr 1fr; }
+    .method-column + .method-column { border-left: 1px solid var(--line); }
+    .method-column-title { padding: 11px 16px; background: var(--surface-soft); color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    .method-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; padding: 8px 16px 13px; }
+    .method { min-width: 0; padding: 6px 0; border-bottom: 1px solid var(--line); }
+    .method code { color: var(--accent); font: 650 11.5px/1.4 "SFMono-Regular", Consolas, monospace; overflow-wrap: anywhere; }
+    .method small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; line-height: 1.4; }
+
+    .tip { display: flex; gap: 12px; margin-top: 17px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line)); border-radius: 12px; background: var(--accent-soft); color: var(--muted); font-size: 13px; }
+    .tip strong { color: var(--ink); }
+    .tip-mark { color: var(--accent); font-size: 17px; line-height: 1.2; }
+    .pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 31px; padding-top: 19px; border-top: 1px solid var(--line); }
+    .page-button {
+      min-width: 125px; display: inline-flex; flex-direction: column; padding: 9px 13px;
+      border: 1px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; text-align: left;
+    }
+    .page-button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .page-button:disabled { opacity: .4; cursor: default; }
+    .page-button.next { text-align: right; }
+    .page-button small { color: var(--muted); font-size: 10px; }
+    .page-button strong { font-size: 12px; }
+    .page-count { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .progress { height: 3px; margin-top: 18px; overflow: hidden; border-radius: 99px; background: var(--line); }
+    .progress-bar { height: 100%; background: var(--accent); transition: width .25s; }
+    footer { display: flex; justify-content: space-between; gap: 15px; padding: 20px 0 26px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    .overview-callout { padding: 18px; margin-top: 25px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; color: var(--muted); }
+    .overview-callout strong { color: var(--ink); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 1fr; gap: 24px; padding-top: 20px; }
+      .dsa-layout { grid-template-columns: 1fr; gap: 17px; padding-top: 18px; }
+      aside { position: static; }
+      .sidebar-heading, .sidebar-note { display: none; }
+      .topic-nav { display: flex; gap: 7px; overflow-x: auto; padding: 2px 0 8px; scrollbar-width: thin; }
+      .topic-link { flex: 0 0 auto; width: auto; border: 1px solid var(--line); background: var(--surface); padding: 8px 10px; font-size: 12px; }
+      .topic-number { display: none; }
+    }
+    @media (max-width: 600px) {
+      .shell { padding: 0 17px; }
+      .topbar { height: 64px; }
+      .brand-mark { width: 32px; height: 32px; }
+      .brand-name { font-size: 14px; }
+      .theme-toggle { padding: 8px 10px; font-size: 12px; }
+      .theme-label { display: none; }
+      .dsa-app-footer { flex-direction: column; gap: 4px; }
+      .compare-grid, .method-columns { grid-template-columns: 1fr; }
+      .method-column + .method-column { border-left: 0; border-top: 1px solid var(--line); }
+      h1 { font-size: 36px; }
+      .intro { font-size: 14px; }
+      .section-heading { align-items: start; flex-direction: column; gap: 3px; }
+      .page-button { min-width: 108px; }
+      .pagination { gap: 6px; }
+      .page-count { font-size: 10px; }
+      footer { flex-direction: column; gap: 4px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  
+    /* DSA view styles */
+#dsa-app button, #dsa-app select{font:inherit;color:inherit}
+#dsa-app button{cursor:pointer}
+#dsa-app a{color:inherit}
+#dsa-app .shell{max-width:1240px;margin:auto;padding:0 28px}
+#dsa-app .topbar{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+#dsa-app .brand{display:flex;align-items:center;gap:12px;text-decoration:none;font-weight:750;letter-spacing:-.03em}
+#dsa-app .brand-mark{width:36px;height:36px;display:grid;place-items:center;border-radius:11px;background:var(--accent);color:white}
+#dsa-app .brand-name{font-size:16px}
+#dsa-app .brand-name span{color:var(--muted);font-weight:550}
+#dsa-app .top-actions{display:flex;gap:9px;align-items:center}
+#dsa-app .action{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:9px 13px;text-decoration:none}
+#dsa-app .action:hover{border-color:var(--accent)}
+#dsa-app .dsa-layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:38px;padding:30px 0 52px}
+#dsa-app aside{align-self:start;position:sticky;top:18px;max-height:calc(100vh - 36px);overflow:auto}
+#dsa-app .side-label{margin:8px 0 10px;color:var(--muted);font-size:11px;font-weight:750;letter-spacing:.11em;text-transform:uppercase}
+#dsa-app .levels{display:grid;gap:4px}
+#dsa-app .level-button, #dsa-app .question-button{width:100%;border:0;border-radius:8px;background:transparent;color:var(--muted);text-align:left}
+#dsa-app .level-button{padding:9px 10px;font-size:12px}
+#dsa-app .level-button:hover, #dsa-app .question-button:hover{background:var(--soft);color:var(--ink)}
+#dsa-app .level-button[aria-current="true"], #dsa-app .question-button[aria-current="true"]{background:var(--accent-soft);color:var(--accent);font-weight:700}
+#dsa-app .question-list{display:grid;gap:2px;max-height:40vh;overflow:auto;padding-right:3px}
+#dsa-app .question-button{padding:7px 9px;font-size:11px;line-height:1.45}
+#dsa-app .q-num{display:inline-block;width:25px;color:var(--muted);font-variant-numeric:tabular-nums}
+#dsa-app .side-note{margin-top:16px;padding:12px;border:1px solid var(--line);border-radius:11px;color:var(--muted);font-size:11px}
+#dsa-app .side-note strong{display:block;color:var(--ink);margin-bottom:3px}
+#dsa-app main{min-width:0}
+#dsa-app .eyebrow{color:var(--accent);font-size:11px;font-weight:750;letter-spacing:.12em;text-transform:uppercase}
+#dsa-app h1{margin:9px 0;font-size:clamp(30px,4vw,43px);line-height:1.14;letter-spacing:-.05em}
+#dsa-app .intro{margin:0;color:var(--muted);font-size:14px}
+#dsa-app .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+#dsa-app .pill{padding:4px 9px;border:1px solid var(--line);border-radius:99px;background:var(--surface);color:var(--muted);font-size:11px}
+#dsa-app .pill strong{color:var(--ink)}
+#dsa-app .problem-head{margin-bottom:23px}
+#dsa-app .compare{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+#dsa-app .card{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:13px;background:var(--surface);box-shadow:var(--shadow)}
+#dsa-app .card-head{display:flex;align-items:center;gap:9px;padding:12px 15px;border-bottom:1px solid var(--line)}
+#dsa-app .lang-icon{width:27px;height:27px;display:grid;place-items:center;border-radius:8px;background:#fff0d9;color:#b77200;font-size:11px;font-weight:800}
+#dsa-app .lang-icon.py{background:#e3f2ff;color:#2775a8}
+#dsa-app .card-head strong{font-size:13px}
+#dsa-app .card-head small{margin-left:auto;color:var(--muted);font-size:10px}
+#dsa-app .code-area{padding:13px 15px 15px}
+#dsa-app .code-label{display:flex;justify-content:space-between;margin:0 1px 8px;color:var(--muted);font-size:10px}
+#dsa-app .code-label span:last-child{color:var(--green)}
+#dsa-app pre{min-height:110px;margin:0;padding:14px;overflow:auto;border-radius:9px;background:var(--code);color:var(--code-ink);font:12px/1.65 "SFMono-Regular",Consolas,"Liberation Mono",monospace;tab-size:2}
+#dsa-app .explanation{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:17px}
+#dsa-app .explain-card{padding:14px 15px;border:1px solid var(--line);border-radius:11px;background:var(--surface)}
+#dsa-app .explain-card h2{margin:0 0 5px;font-size:12px}
+#dsa-app .explain-card p{margin:0;color:var(--muted);font-size:12px}
+#dsa-app .complexity{margin-top:13px;color:var(--muted);font-size:11px}
+#dsa-app .complexity strong{color:var(--ink)}
+#dsa-app .pagination{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:24px;padding-top:16px;border-top:1px solid var(--line)}
+#dsa-app .page-button{min-width:120px;display:flex;flex-direction:column;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);text-align:left}
+#dsa-app .page-button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+#dsa-app .page-button:disabled{opacity:.42;cursor:default}
+#dsa-app .page-button.next{text-align:right}
+#dsa-app .page-button small{color:var(--muted);font-size:10px}
+#dsa-app .page-button strong{font-size:11px}
+#dsa-app .page-count{color:var(--muted);font-size:11px;text-align:center}
+#dsa-app .progress{height:3px;margin-top:14px;overflow:hidden;border-radius:9px;background:var(--line)}
+#dsa-app .progress-bar{height:100%;background:var(--accent);transition:width .2s}
+#dsa-app footer{display:flex;justify-content:space-between;gap:12px;padding:18px 0 24px;border-top:1px solid var(--line);color:var(--muted);font-size:10px}
+@media(max-width:850px){#dsa-app .dsa-layout{grid-template-columns:1fr;gap:17px;padding-top:18px}
+#dsa-app aside{position:static;max-height:none;overflow:visible}
+#dsa-app .levels{display:flex;gap:6px;overflow:auto;padding-bottom:7px}
+#dsa-app .level-button{flex:0 0 auto;width:auto;border:1px solid var(--line);background:var(--surface)}
+#dsa-app .question-list{display:flex;max-height:none;overflow:auto;padding:3px 0 8px}
+#dsa-app .question-button{flex:0 0 auto;width:auto;max-width:210px;border:1px solid var(--line);background:var(--surface)}
+#dsa-app .q-num{width:auto;margin-right:5px}
+#dsa-app .side-note{display:none}
+}
+@media(max-width:600px){#dsa-app .shell{padding:0 16px}
+#dsa-app .topbar{height:64px}
+#dsa-app .brand-mark{width:32px;height:32px}
+#dsa-app .brand-name{font-size:14px}
+#dsa-app .action{padding:8px 9px;font-size:11px}
+#dsa-app .theme-label{display:none}
+#dsa-app .compare, #dsa-app .explanation{grid-template-columns:1fr}
+#dsa-app h1{font-size:34px}
+#dsa-app .intro{font-size:13px}
+#dsa-app .pagination{gap:4px}
+#dsa-app .page-button{min-width:98px;padding:7px 8px}
+#dsa-app .page-count{font-size:10px}
+#dsa-app footer{flex-direction:column;gap:4px}
+}
+@media(prefers-reduced-motion:reduce){#dsa-app *, #dsa-app *::before, #dsa-app *::after{scroll-behavior:auto!important;transition-duration:.01ms!important}
+}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="JS and Python guide home" id="home-link">
+        <span class="brand-mark">↔</span>
+        <span class="brand-name">Side by side <span>/ JS + Python</span></span>
+      </a>
+      <div class="top-actions">
+        <button class="theme-toggle dsa-open" id="open-dsa" type="button">DSA practice <span aria-hidden="true">→</span></button>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode">
+          <span id="theme-icon" aria-hidden="true">☾</span><span class="theme-label" id="theme-label">Dark mode</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside id="guide-sidebar" aria-label="Guide topics">
+        <p class="sidebar-heading">The guide</p>
+        <nav class="topic-nav" id="topic-nav" aria-label="Topics"></nav>
+        <div class="sidebar-note">
+          <strong>A practical reference</strong>
+          Compare common built-in methods and everyday operations. Examples use modern JavaScript and Python 3.
+        </div>
+      </aside>
+
+      <main id="main-content" tabindex="-1">
+        <div id="topic-content" aria-live="polite"></div>
+        <div id="dsa-app" hidden>
+          <div class="dsa-section-bar"><strong>DSA practice · 140 problems</strong><button class="theme-toggle" id="back-to-guide" type="button">← Language guide</button></div>
+          <div class="dsa-layout">
+            <aside aria-label="DSA questions">
+              <p class="side-label">Levels</p>
+              <nav class="levels" id="levels-nav" aria-label="DSA levels"></nav>
+              <p class="side-label">Questions in this level</p>
+              <nav class="question-list" id="questions-nav" aria-label="Questions"></nav>
+              <div class="side-note"><strong>How to practice</strong>Try solving before reading the answer. Use the method rationale and edge-case note to review, then trace the code by hand.</div>
+            </aside>
+            <section class="dsa-content"><div id="question-content" aria-live="polite"></div></section>
+          </div>
+          <footer class="dsa-app-footer"><span>140 interview practice problems · JavaScript + Python</span><span>Functions return answers unless the question specifically asks for output.</span></footer>
+        </div>
+      </main>
+    </div>
+
+    <footer id="guide-footer">
+      <span>JavaScript (ES2023+) · Python 3.9+</span>
+      <span>Methods vary slightly by runtime version; check your version for newer additions.</span>
+    </footer>
+  </div>
+
+  <script>
+    const topics = [
+      {
+        title: "Start here",
+        eyebrow: "A practical language guide",
+        description: "Compare everyday JavaScript and Python methods, syntax, and behavior. Pick a topic to explore concise examples side by side.",
+        tag: "Quick orientation",
+        jsCode: `// JavaScript
+const languages = ["JavaScript", "Python"];
+const greeting = name => \`Hello, \${name}!\`;
+
+console.log(greeting("world"));
+console.log(languages.map(x => x.toLowerCase()));`,
+        pyCode: `# Python
+languages = ["JavaScript", "Python"]
+
+def greeting(name):
+    return f"Hello, {name}!"
+
+print(greeting("world"))
+print([x.lower() for x in languages])`,
+        methodsTitle: "How to read this guide",
+        jsMethods: [
+          ["const / let", "Declare block-scoped variables."],
+          ["array.map(fn)", "Transform every array item."],
+          ["object.method()", "Call a method on a value."],
+          ["=== / !==", "Strict equality comparisons."]
+        ],
+        pyMethods: [
+          ["name = value", "Assign a name; scope is function-based."],
+          ["[f(x) for x in xs]", "Build a list with a comprehension."],
+          ["object.method()", "Call a method on a value."],
+          ["== / is", "Value equality / object identity."]
+        ],
+        tip: "JavaScript and Python share many familiar ideas, but not every method has a direct equivalent. Compare behavior—not just spelling—especially for mutation, indexing, and truthiness."
+      },
+      {
+        title: "Strings",
+        eyebrow: "Text & formatting",
+        description: "Both languages offer rich text operations. JavaScript strings are immutable UTF-16 values; Python strings are immutable Unicode sequences.",
+        tag: "Immutable values",
+        jsCode: `const text = "  Learn JavaScript  ";
+const clean = text.trim();
+
+console.log(clean.toUpperCase());       // LEARN JAVASCRIPT
+console.log(clean.includes("Java"));    // true
+console.log(clean.replace("JavaScript", "Python"));
+console.log("ha".repeat(3));            // hahaha`,
+        pyCode: `text = "  Learn Python  "
+clean = text.strip()
+
+print(clean.upper())                   # LEARN PYTHON
+print("Java" in clean)                  # False
+print(clean.replace("Python", "JavaScript"))
+print("ha" * 3)                         # hahaha`,
+        methodsTitle: "Common string methods",
+        jsMethods: [
+          ["at(i), charAt(i)", "Read a character by position; at() accepts negatives."],
+          ["includes(s)", "Check whether a substring exists."],
+          ["startsWith(s), endsWith(s)", "Check a prefix or suffix."],
+          ["indexOf(s), lastIndexOf(s)", "Find a substring; -1 when absent."],
+          ["slice(start, end)", "Extract text; supports negative positions."],
+          ["substring(start, end)", "Extract text; negative values become 0."],
+          ["split(separator)", "Split into an array."],
+          ["replace(a, b), replaceAll(a, b)", "Replace a match; replaceAll replaces every match."],
+          ["match(regex), search(regex)", "Match a regular expression / find its index."],
+          ["trim(), trimStart(), trimEnd()", "Remove whitespace at the edges."],
+          ["toLowerCase(), toUpperCase()", "Change letter case."],
+          ["padStart(n), padEnd(n)", "Pad to a target length."],
+          ["repeat(n)", "Repeat the string n times."],
+          ["concat(...parts)", "Join strings; + is more commonly used."]
+        ],
+        pyMethods: [
+          ["capitalize(), title(), casefold()", "Capitalize, title-case, or normalize for caseless matching."],
+          ["lower(), upper(), swapcase()", "Change letter case."],
+          ["strip(), lstrip(), rstrip()", "Remove whitespace or specified edge characters."],
+          ["startswith(s), endswith(s)", "Check a prefix or suffix."],
+          ["find(s), rfind(s), index(s), rindex(s)", "Search; find returns -1, index raises ValueError."],
+          ["count(s)", "Count non-overlapping occurrences."],
+          ["replace(old, new[, count])", "Replace occurrences, optionally limiting the count."],
+          ["split(sep), rsplit(sep), splitlines()", "Split from the left/right or at line breaks."],
+          ["join(iterable)", "Join strings using this string as the separator."],
+          ["removeprefix(s), removesuffix(s)", "Remove a matching prefix or suffix (3.9+)."],
+          ["ljust(), rjust(), center(), zfill()", "Pad to a target width."],
+          ["isalpha(), isdigit(), isdecimal(), isnumeric()", "Test character categories; these differ."],
+          ["isalnum(), isascii(), isspace()", "Test character categories."],
+          ["islower(), isupper(), istitle()", "Test letter case."],
+          ["isidentifier(), isprintable()", "Test identifier syntax or printability."],
+          ["partition(sep), rpartition(sep)", "Split once into a 3-part tuple."],
+          ["encode(encoding)", "Encode text to bytes."],
+          ["expandtabs(n)", "Replace tab characters with spaces."],
+          ["format(), format_map()", "Format a template string."],
+          ["translate(table)", "Map characters using a translation table."]
+        ],
+        tip: "JavaScript replace() replaces the first match when given a string; use replaceAll() or a global regular expression for all matches. Python str.replace() replaces all matches by default."
+      },
+      {
+        title: "Arrays & lists",
+        eyebrow: "Ordered collections",
+        description: "JavaScript arrays and Python lists are ordered, mutable sequences. Both can hold mixed types, though keeping one type is usually clearer.",
+        tag: "Mutable sequences",
+        jsCode: `const nums = [3, 1, 2];
+nums.push(4);                         // mutate
+const doubled = nums.map(n => n * 2); // new array
+const evens = nums.filter(n => n % 2 === 0);
+
+console.log(nums);                    // [3, 1, 2, 4]
+console.log(doubled);                 // [6, 2, 4, 8]`,
+        pyCode: `nums = [3, 1, 2]
+nums.append(4)                        # mutate
+doubled = [n * 2 for n in nums]       # new list
+evens = [n for n in nums if n % 2 == 0]
+
+print(nums)                           # [3, 1, 2, 4]
+print(doubled)                        # [6, 2, 4, 8]`,
+        methodsTitle: "Array & list methods",
+        jsMethods: [
+          ["push(...items), pop()", "Add/remove at the end; return new length / removed item."],
+          ["unshift(...items), shift()", "Add/remove at the start."],
+          ["at(i), with(i, value)", "Read an index (negative supported) / copy with one replacement."],
+          ["concat(...items)", "Return a shallow combined array."],
+          ["slice(start, end)", "Copy a range; end is excluded."],
+          ["splice(start, count, ...items)", "Remove/insert in place; returns removed items."],
+          ["toSpliced(...), toReversed()", "Non-mutating splice / reverse (modern JS)."],
+          ["toSorted(compareFn)", "Non-mutating sort (modern JS)."],
+          ["indexOf(x), lastIndexOf(x)", "Find an item by strict equality."],
+          ["includes(x)", "Check for an item (SameValueZero)."],
+          ["find(fn), findIndex(fn)", "Get the first match / its index."],
+          ["findLast(fn), findLastIndex(fn)", "Search from the end (modern JS)."],
+          ["filter(fn), map(fn)", "Keep matching items / transform items."],
+          ["forEach(fn)", "Run a callback for each item; returns undefined."],
+          ["reduce(fn, initial), reduceRight(fn)", "Accumulate items left-to-right / right-to-left."],
+          ["some(fn), every(fn)", "Test whether any / all items match."],
+          ["sort(compareFn), reverse()", "Sort/reverse in place; sort is lexicographic by default."],
+          ["flat(depth), flatMap(fn)", "Flatten nested arrays / map then flatten one level."],
+          ["fill(value), copyWithin(...)", "Overwrite a range / copy a range in place."],
+          ["join(separator), keys(), values(), entries()", "Create a string or get iterators."]
+        ],
+        pyMethods: [
+          ["append(x)", "Add one item at the end."],
+          ["extend(iterable)", "Append each item from an iterable."],
+          ["insert(i, x)", "Insert before index i."],
+          ["remove(x)", "Remove first matching item; raises ValueError if absent."],
+          ["pop([i])", "Remove and return item at i (last by default)."],
+          ["clear()", "Remove all items."],
+          ["index(x[, start[, end]])", "Find first matching index; raises ValueError if absent."],
+          ["count(x)", "Count equal items."],
+          ["sort(*, key=None, reverse=False)", "Sort in place; returns None."],
+          ["reverse()", "Reverse in place; returns None."],
+          ["copy()", "Return a shallow copy."],
+          ["len(xs)", "Get length (built-in, not a list method)."],
+          ["xs[i], xs[-1]", "Index with negative positions from the end."],
+          ["xs[a:b], xs[::step]", "Slice; creates a shallow list copy."],
+          ["x in xs, xs + ys, xs * n", "Membership, concatenation, repetition."]
+        ],
+        tip: "Most JavaScript array iteration methods return new arrays, while push/splice/sort/reverse mutate. Python list.sort() also mutates and returns None; use sorted(items) to get a new sorted list."
+      },
+      {
+        title: "Objects & dictionaries",
+        eyebrow: "Key-value data",
+        description: "Use JavaScript objects and Python dictionaries for named key-value data. JavaScript objects have prototypes; Python dict keys must be hashable.",
+        tag: "Key-value pairs",
+        jsCode: `const user = { name: "Ada", role: "admin" };
+user.active = true;
+
+console.log(Object.keys(user));       // ["name", "role", "active"]
+console.log(Object.entries(user));
+console.log(Object.hasOwn(user, "role")); // true
+const copy = { ...user, role: "editor" };`,
+        pyCode: `user = {"name": "Ada", "role": "admin"}
+user["active"] = True
+
+print(list(user.keys()))               # ['name', 'role', 'active']
+print(list(user.items()))
+print("role" in user)                  # True
+copy = {**user, "role": "editor"}`,
+        methodsTitle: "Object & dictionary helpers",
+        jsMethods: [
+          ["Object.keys(obj)", "Array of own enumerable string keys."],
+          ["Object.values(obj)", "Array of own enumerable string values."],
+          ["Object.entries(obj)", "Array of [key, value] pairs."],
+          ["Object.fromEntries(pairs)", "Build an object from key-value pairs."],
+          ["Object.assign(target, ...sources)", "Copy enumerable properties into target (mutates target)."],
+          ["Object.hasOwn(obj, key)", "Check for an own property (ES2022+)."],
+          ["Object.create(proto)", "Create an object with a chosen prototype."],
+          ["Object.freeze(obj)", "Prevent adding/removing/changing own properties (shallow)."],
+          ["Object.seal(obj)", "Prevent adding/removing properties (shallow)."],
+          ["Object.is(a, b)", "Compare values with SameValue semantics."],
+          ["obj.hasOwnProperty(key)", "Legacy own-property check; avoid on untrusted objects."],
+          ["delete obj.key", "Remove a property."]
+        ],
+        pyMethods: [
+          ["keys(), values(), items()", "Dynamic dictionary views of keys, values, or pairs."],
+          ["get(key[, default])", "Read a value or default without KeyError."],
+          ["setdefault(key[, default])", "Read a value, inserting default if missing."],
+          ["update(other)", "Merge key-value pairs in place."],
+          ["pop(key[, default])", "Remove and return a key's value."],
+          ["popitem()", "Remove and return the last inserted pair."],
+          ["clear()", "Remove all entries."],
+          ["copy()", "Create a shallow copy."],
+          ["dict.fromkeys(keys[, value])", "Create a dict with shared initial value."],
+          ["key in d, del d[key]", "Check membership in keys / delete a key."],
+          ["d | other (3.9+)", "Create a merged dictionary."],
+          ["d |= other (3.9+)", "Update a dictionary in place."]
+        ],
+        tip: "Object.keys() and Object.entries() include own enumerable string-keyed properties. Python's in checks dictionary keys, not values; use value in d.values() to search values."
+      },
+      {
+        title: "Sets",
+        eyebrow: "Unique values",
+        description: "Sets store unique values and are useful for membership checks and removing duplicates. JavaScript Set preserves insertion order; Python set is unordered.",
+        tag: "Unique collections",
+        jsCode: `const tags = new Set(["js", "python", "js"]);
+tags.add("web");
+
+console.log(tags.has("python")); // true
+console.log([...tags]);          // ["js", "python", "web"]
+tags.delete("web");
+console.log(tags.size);          // 2`,
+        pyCode: `tags = {"js", "python", "js"}
+tags.add("web")
+
+print("python" in tags)          # True
+print(tags)                      # {'js', 'python', 'web'}
+tags.discard("web")              # no error if absent
+print(len(tags))                 # 2`,
+        methodsTitle: "Set methods & operations",
+        jsMethods: [
+          ["new Set(iterable)", "Create a set; duplicate values collapse."],
+          ["add(value)", "Add a value; returns the Set."],
+          ["has(value)", "Check membership."],
+          ["delete(value)", "Remove a value; returns whether it existed."],
+          ["clear()", "Remove every value."],
+          ["size", "Read the number of unique values (property)."],
+          ["keys(), values(), entries()", "Get iterators; keys() and values() are equivalent."],
+          ["forEach(fn)", "Visit values in insertion order."],
+          ["A.union(B)", "Return a new union (modern JS runtimes)."],
+          ["A.intersection(B)", "Return values present in both (modern JS)."],
+          ["A.difference(B)", "Return values in A but not B (modern JS)."],
+          ["A.symmetricDifference(B)", "Return values in either, but not both (modern JS)."],
+          ["isSubsetOf(), isSupersetOf(), isDisjointFrom()", "Test set relationships (modern JS)."]
+        ],
+        pyMethods: [
+          ["add(x)", "Add one element."],
+          ["update(iterable, ...)", "Add elements from one or more iterables."],
+          ["remove(x)", "Remove element; raises KeyError if absent."],
+          ["discard(x)", "Remove if present; never raises for absence."],
+          ["pop()", "Remove and return an arbitrary element."],
+          ["clear()", "Remove all elements."],
+          ["copy()", "Return a shallow copy."],
+          ["A | B, A.union(B)", "Union."],
+          ["A & B, A.intersection(B)", "Intersection."],
+          ["A - B, A.difference(B)", "Difference."],
+          ["A ^ B, A.symmetric_difference(B)", "Symmetric difference."],
+          ["A <= B, A.issubset(B)", "Test whether A is a subset of B."],
+          ["A >= B, A.issuperset(B)", "Test whether A is a superset of B."],
+          ["A.isdisjoint(B)", "Test whether sets share no elements."]
+        ],
+        tip: "Python's built-in set is mutable and unhashable, so it cannot be a dictionary key. Use frozenset for an immutable, hashable set. JavaScript objects in a Set compare by identity."
+      },
+      {
+        title: "Maps & lookup",
+        eyebrow: "Choosing a key-value collection",
+        description: "JavaScript Map and Python dict are both iterable key-value collections. A Map accepts keys of any type; a Python dictionary accepts hashable keys.",
+        tag: "Fast lookup",
+        jsCode: `const scores = new Map();
+scores.set("Ada", 98).set("Lin", 94);
+
+console.log(scores.get("Ada")); // 98
+console.log(scores.has("Lin")); // true
+for (const [name, score] of scores) {
+  console.log(name, score);
+}`,
+        pyCode: `scores = {}
+scores["Ada"] = 98
+scores["Lin"] = 94
+
+print(scores.get("Ada"))        # 98
+print("Lin" in scores)          # True
+for name, score in scores.items():
+    print(name, score)`,
+        methodsTitle: "Map vs dictionary",
+        jsMethods: [
+          ["set(key, value)", "Add or replace a key; returns the Map."],
+          ["get(key)", "Get the value, or undefined if absent."],
+          ["has(key)", "Check whether a key exists."],
+          ["delete(key)", "Remove a key; returns whether it existed."],
+          ["clear()", "Remove all entries."],
+          ["size", "Read entry count (property)."],
+          ["keys(), values(), entries()", "Iterators in insertion order."],
+          ["forEach((value, key) => ...)", "Visit entries in insertion order."],
+          ["new Map(iterable)", "Create from [key, value] pairs."],
+          ["WeakMap", "Object-keyed map that does not keep keys alive."]
+        ],
+        pyMethods: [
+          ["d[key] = value", "Add or replace a key."],
+          ["d[key]", "Get a value; raises KeyError if absent."],
+          ["get(key[, default])", "Get a value or default if absent."],
+          ["key in d", "Check whether a key exists."],
+          ["del d[key], pop(key)", "Remove a key (pop also returns its value)."],
+          ["clear(), copy(), update()", "Clear, shallow-copy, or merge/update."],
+          ["keys(), values(), items()", "Dynamic views in insertion order."],
+          ["setdefault(key[, default])", "Get a value, adding a default if missing."],
+          ["dict(pairs)", "Create a dictionary from key-value pairs."],
+          ["WeakKeyDictionary", "weakref.WeakKeyDictionary for weak object keys."]
+        ],
+        tip: "Use Map when JavaScript keys are not just strings/symbols or when frequent additions and removals are expected. Python dict preserves insertion order (language guarantee since Python 3.7)."
+      },
+      {
+        title: "Numbers & math",
+        eyebrow: "Numeric operations",
+        description: "Both languages have numeric helpers, but their type systems differ: JavaScript has Number and BigInt, while Python integers grow to arbitrary precision.",
+        tag: "Types & rounding",
+        jsCode: `const price = 12.345;
+console.log(Math.round(price * 100) / 100); // 12.35
+console.log(Number.isNaN(NaN));             // true
+console.log(Number.isInteger(4));           // true
+console.log((255).toString(16));            // "ff"
+console.log(2 ** 10);                       // 1024`,
+        pyCode: `price = 12.345
+print(round(price, 2))        # 12.35*
+print(float("nan").is_integer())  # False
+print(isinstance(4, int))     # True
+print(format(255, "x"))       # 'ff'
+print(2 ** 100)               # arbitrary precision`,
+        methodsTitle: "Number & math helpers",
+        jsMethods: [
+          ["Number(value)", "Convert to a number; invalid input becomes NaN."],
+          ["Number.isNaN(x)", "Check for the NaN value without coercion."],
+          ["Number.isFinite(x)", "Check finite number without coercion."],
+          ["Number.isInteger(x)", "Check whether a number has no fractional part."],
+          ["Number.parseInt(s, radix)", "Parse an integer from text."],
+          ["Number.parseFloat(s)", "Parse a floating-point number."],
+          ["Math.round/floor/ceil/trunc(x)", "Round, down, up, or toward zero."],
+          ["Math.max(...xs), Math.min(...xs)", "Find largest / smallest numeric argument."],
+          ["Math.abs(x), Math.sign(x)", "Absolute value / sign."],
+          ["Math.pow(x, y), x ** y", "Raise x to a power."],
+          ["Math.sqrt(x), Math.cbrt(x)", "Square / cube root."],
+          ["Math.random()", "Pseudo-random number in [0, 1)."],
+          ["n.toFixed(digits)", "Format to fixed decimals; returns a string."]
+        ],
+        pyMethods: [
+          ["int(x), float(x), complex(x)", "Convert to numeric types."],
+          ["isinstance(x, int/float)", "Check a value's type; bool is an int subclass."],
+          ["math.isnan(x), math.isfinite(x)", "Check for NaN or finite values (import math)."],
+          ["round(x[, ndigits])", "Round to digits; ties use round-half-to-even."],
+          ["abs(x), pow(x, y)", "Absolute value / exponentiation."],
+          ["min(iterable), max(iterable)", "Find the smallest / largest item."],
+          ["sum(iterable, start=0)", "Sum values."],
+          ["divmod(a, b)", "Return quotient and remainder."],
+          ["math.floor/ceil/trunc(x)", "Round down, up, or toward zero."],
+          ["math.sqrt(x), math.prod(xs)", "Square root / product (import math)."],
+          ["math.isclose(a, b)", "Compare floating point values with tolerance."],
+          ["format(x, spec), f'{x:.2f}'", "Format numbers as strings."]
+        ],
+        tip: "Floating-point values can have tiny representation errors in both languages. For money, use integer minor units or decimal libraries; don't compare computed floats with exact equality. Python round() uses ties-to-even."
+      },
+      {
+        title: "Dates & time",
+        eyebrow: "Working with time",
+        description: "JavaScript includes Date in the language runtime. Python's standard-library date and time types live in the datetime module.",
+        tag: "Time zones matter",
+        jsCode: `const now = new Date();
+const meeting = new Date("2026-06-15T09:30:00Z");
+
+console.log(meeting.toISOString());
+console.log(meeting.getUTCFullYear());
+console.log(new Intl.DateTimeFormat("en", {
+  dateStyle: "medium", timeZone: "UTC"
+}).format(meeting));`,
+        pyCode: `from datetime import datetime, timezone
+
+now = datetime.now(timezone.utc)
+meeting = datetime.fromisoformat("2026-06-15T09:30:00+00:00")
+
+print(meeting.isoformat())
+print(meeting.year)
+print(meeting.strftime("%b %d, %Y"))`,
+        methodsTitle: "Date & time methods",
+        jsMethods: [
+          ["new Date(), Date.now()", "Create current date/time / timestamp in ms."],
+          ["new Date(isoString)", "Parse a date; ISO with timezone is safest."],
+          ["date.toISOString()", "Format in UTC as an ISO string."],
+          ["date.toLocaleString(), Intl.DateTimeFormat", "Format for a locale/time zone."],
+          ["getFullYear(), getMonth(), getDate()", "Read local calendar components; month is 0–11."],
+          ["getUTCFullYear(), getUTCMonth(), ...", "Read UTC calendar components."],
+          ["getTime(), valueOf()", "Read milliseconds since Unix epoch."],
+          ["setFullYear(), setMonth(), setDate()", "Mutate local date components."],
+          ["toJSON()", "Serialize as ISO text for JSON."],
+          ["Date.parse(text)", "Parse date text (format support can vary)."]
+        ],
+        pyMethods: [
+          ["date.today()", "Get today's local date."],
+          ["datetime.now(tz)", "Get current date/time; pass a timezone for aware time."],
+          ["datetime.fromisoformat(text)", "Parse ISO-formatted date/time."],
+          ["datetime.strftime(fmt)", "Format as text."],
+          ["datetime.strptime(text, fmt)", "Parse text with a format."],
+          ["dt.date(), dt.time()", "Extract date or time components."],
+          ["dt.timestamp()", "Convert to Unix timestamp (seconds)."],
+          ["dt.astimezone(tz)", "Convert an aware datetime to another zone."],
+          ["dt.replace(...)", "Create a value with selected components changed."],
+          ["timedelta(days=..., seconds=...)", "Represent a duration for date arithmetic."],
+          ["isoformat(), weekday(), isoweekday()", "Format ISO text or get weekday number."]
+        ],
+        tip: "Prefer ISO 8601 strings with an explicit timezone. JavaScript Date stores an instant but many getters use local time. In Python, distinguish timezone-aware from naive datetime values."
+      },
+      {
+        title: "JSON & conversion",
+        eyebrow: "Data exchange",
+        description: "JSON is a common interchange format. Convert values explicitly and be aware of differences in supported types and serialization behavior.",
+        tag: "Interoperability",
+        jsCode: `const user = { name: "Ada", active: true };
+const json = JSON.stringify(user);
+const parsed = JSON.parse(json);
+
+console.log(json);               // {"name":"Ada","active":true}
+console.log(parsed.name);        // Ada
+console.log(String(42));         // "42"
+console.log(Boolean(""));        // false`,
+        pyCode: `import json
+
+user = {"name": "Ada", "active": True}
+text = json.dumps(user)
+parsed = json.loads(text)
+
+print(text)                      # {"name": "Ada", "active": true}
+print(parsed["name"])            # Ada
+print(str(42))                   # '42'
+print(bool(""))                  # False`,
+        methodsTitle: "Serialization & conversion",
+        jsMethods: [
+          ["JSON.stringify(value)", "Serialize supported values to JSON text."],
+          ["JSON.parse(text)", "Parse JSON text; throws SyntaxError if invalid."],
+          ["String(value)", "Convert a value to a string."],
+          ["Number(value), Boolean(value)", "Explicit primitive conversions."],
+          ["Array.from(iterable)", "Create an array from an iterable/array-like value."],
+          ["Object.entries(obj)", "Convert own enumerable entries to pairs."],
+          ["parseInt(text, radix)", "Parse an integer; provide radix for clarity."],
+          ["value.toString()", "Use an object's string conversion method."]
+        ],
+        pyMethods: [
+          ["json.dumps(value)", "Serialize a supported value to JSON text."],
+          ["json.loads(text)", "Parse JSON text; raises JSONDecodeError if invalid."],
+          ["json.dump(value, file), json.load(file)", "Write/read JSON using a file object."],
+          ["str(value), int(value), float(value)", "Convert to common built-in types."],
+          ["bool(value)", "Convert using Python truth-value rules."],
+          ["list(iterable), tuple(iterable)", "Create a list or tuple from an iterable."],
+          ["set(iterable), dict(pairs)", "Create a set or dictionary."],
+          ["repr(value)", "Get a developer-oriented representation."]
+        ],
+        tip: "JSON has no native undefined, NaN, Infinity, date, set, or tuple values. JavaScript may omit undefined object properties; Python's json module raises for unsupported values by default."
+      },
+      {
+        title: "Iteration & callbacks",
+        eyebrow: "Repeating work",
+        description: "JavaScript commonly uses array callbacks and for...of loops. Python offers for loops, comprehensions, and iterator tools in itertools.",
+        tag: "Transform & filter",
+        jsCode: `const names = ["ada", "lin", "grace"];
+const labels = names
+  .filter(name => name.length > 3)
+  .map(name => name.toUpperCase());
+
+for (const [index, name] of names.entries()) {
+  console.log(index, name);
+}`,
+        pyCode: `names = ["ada", "lin", "grace"]
+labels = [
+    name.upper()
+    for name in names
+    if len(name) > 3
+]
+
+for index, name in enumerate(names):
+    print(index, name)`,
+        methodsTitle: "Iteration helpers",
+        jsMethods: [
+          ["for...of", "Iterate values from an iterable."],
+          ["for...in", "Iterate enumerable property keys; usually avoid for arrays."],
+          ["items.forEach(fn)", "Run a callback for each array item."],
+          ["items.map(fn)", "Transform each item into a new array."],
+          ["items.filter(fn)", "Create an array of matching items."],
+          ["items.reduce(fn, initial)", "Accumulate into one value."],
+          ["items.some(fn), every(fn)", "Test whether some / all items match."],
+          ["Array.from(iterable)", "Convert an iterable into an array."],
+          ["iterable[Symbol.iterator]()", "Get the iterable's iterator."],
+          ["function* / yield", "Define a generator that yields values."]
+        ],
+        pyMethods: [
+          ["for x in iterable", "Iterate values."],
+          ["enumerate(iterable, start=0)", "Iterate index-value pairs."],
+          ["zip(a, b, strict=False)", "Iterate paired items; stops at shortest by default."],
+          ["map(fn, iterable)", "Lazily apply a function."],
+          ["filter(fn, iterable)", "Lazily retain matching items."],
+          ["any(iterable), all(iterable)", "Test whether some / all items are truthy."],
+          ["iter(obj), next(iterator)", "Get an iterator / its next item."],
+          ["reversed(seq), sorted(iterable)", "Reverse-iterate / return a sorted list."],
+          ["[expr for x in xs if test]", "Create a list with a comprehension."],
+          ["(expr for x in xs)", "Create a lazy generator expression."],
+          ["def gen(): yield value", "Define a generator function."]
+        ],
+        tip: "Python map() and filter() are lazy iterators; JavaScript array map() and filter() return arrays immediately. JavaScript forEach() cannot be broken out of with break—use for...of when you need that control."
+      }
+    ];
+
+    const nav = document.getElementById("topic-nav");
+    const content = document.getElementById("topic-content");
+    let activePage = 0;
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[character]);
+    }
+
+    function highlightCode(source, language) {
+      const keywords = language === "python"
+        ? "and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield True False None self"
+        : "as async await break case catch class const continue debugger default delete do else export extends finally for from function get if import in instanceof let new of return set static super switch this throw try typeof var void while with yield true false null undefined";
+      const keywordSet = new Set(keywords.split(" "));
+      const builtins = new Set("Array Boolean Date Error Infinity JSON Map Math NaN Number Object Promise RangeError Set String TypeError ValueError abs all any bool dict enumerate filter float int len list map max min print range reversed round set sorted str sum tuple".split(" "));
+      const tokenPattern = /\/\/[^\n]*|#[^\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\b\d+(?:\.\d+)?\b|\b[A-Za-z_$][\w$]*\b|===|!==|=>|==|!=|<=|>=|&&|\|\||\*\*|[+\-*\/%=<>!?:.,;()[\]{}]/g;
+      let output = "";
+      let lastIndex = 0;
+      for (const match of source.matchAll(tokenPattern)) {
+        const token = match[0];
+        output += escapeHTML(source.slice(lastIndex, match.index));
+        let tokenClass = "";
+        if (token.startsWith("//") || (language === "python" && token.startsWith("#"))) tokenClass = "tok-comment";
+        else if (token.startsWith('"') || token.startsWith("'") || token.startsWith("`")) tokenClass = "tok-string";
+        else if (/^\d/.test(token)) tokenClass = "tok-number";
+        else if (keywordSet.has(token)) tokenClass = "tok-keyword";
+        else if (/^[A-Za-z_$]/.test(token) && /^\(/.test(source.slice(match.index + token.length).trimStart())) tokenClass = "tok-function";
+        else if (builtins.has(token)) tokenClass = "tok-builtin";
+        else if (/^[+\-*\/%=<>!?:]|^(===|!==|=>|==|!=|<=|>=|&&|\|\||\*\*)$/.test(token)) tokenClass = "tok-operator";
+        else if (/^[.,;()[\]{}]$/.test(token)) tokenClass = "tok-punctuation";
+        output += tokenClass ? `<span class="${tokenClass}">${escapeHTML(token)}</span>` : escapeHTML(token);
+        lastIndex = match.index + token.length;
+      }
+      return output + escapeHTML(source.slice(lastIndex));
+    }
+
+    function methodMarkup(methods, language) {
+      return methods.map(([name, description]) =>
+        `<div class="method"><code>${highlightCode(name, language)}</code><small>${escapeHTML(description)}</small></div>`
+      ).join("");
+    }
+
+    function renderNav() {
+      nav.innerHTML = topics.map((topic, index) => `
+        <button class="topic-link" type="button" data-page="${index}" aria-current="${index === activePage ? "page" : "false"}">
+          <span class="topic-number">${String(index + 1).padStart(2, "0")}</span>
+          <span>${escapeHTML(topic.title)}</span>
+        </button>
+      `).join("");
+      nav.querySelectorAll("[data-page]").forEach(button => {
+        button.addEventListener("click", () => goToPage(Number(button.dataset.page)));
+      });
+    }
+
+    function renderPage() {
+      const topic = topics[activePage];
+      const previous = activePage > 0 ? topics[activePage - 1] : null;
+      const next = activePage < topics.length - 1 ? topics[activePage + 1] : null;
+      content.innerHTML = `
+        <section class="topic-header">
+          <div class="eyebrow">${escapeHTML(topic.eyebrow)}</div>
+          <h1>${escapeHTML(topic.title)}</h1>
+          <p class="intro">${escapeHTML(topic.description)}</p>
+          <div class="topic-meta">
+            <span class="pill"><strong>${String(activePage + 1).padStart(2, "0")}</strong> / ${String(topics.length).padStart(2, "0")} topics</span>
+            <span class="pill">${escapeHTML(topic.tag)}</span>
+          </div>
+        </section>
+        <section aria-label="Code examples side by side">
+          <div class="compare-grid">
+            <article class="language-card">
+              <div class="language-head"><span class="language-icon" aria-hidden="true">JS</span><h2>JavaScript</h2><span>Modern JS</span></div>
+              <div class="code-wrap"><div class="code-label"><span>Example</span><span>javascript</span></div><pre><code>${highlightCode(topic.jsCode, "javascript")}</code></pre></div>
+            </article>
+            <article class="language-card">
+              <div class="language-head"><span class="language-icon py" aria-hidden="true">Py</span><h2>Python</h2><span>Python 3</span></div>
+              <div class="code-wrap"><div class="code-label"><span>Example</span><span>python</span></div><pre><code>${highlightCode(topic.pyCode, "python")}</code></pre></div>
+            </article>
+          </div>
+        </section>
+        <section aria-labelledby="methods-heading">
+          <div class="section-heading">
+            <h2 id="methods-heading">${escapeHTML(topic.methodsTitle)}</h2>
+            <p>Common built-ins and their closest equivalents</p>
+          </div>
+          <div class="methods-panel">
+            <div class="methods-toolbar"><strong>Method cheat sheet</strong><span>JS ⇄ Python</span></div>
+            <div class="method-columns">
+              <div class="method-column"><div class="method-column-title">JavaScript</div><div class="method-list">${methodMarkup(topic.jsMethods, "javascript")}</div></div>
+              <div class="method-column"><div class="method-column-title">Python</div><div class="method-list">${methodMarkup(topic.pyMethods, "python")}</div></div>
+            </div>
+          </div>
+        </section>
+        <aside class="tip" aria-label="Important difference">
+          <span class="tip-mark" aria-hidden="true">✦</span>
+          <div><strong>Good to know</strong><br>${escapeHTML(topic.tip)}</div>
+        </aside>
+        <nav class="pagination" aria-label="Topic pagination">
+          <button class="page-button" id="previous-page" type="button" ${previous ? "" : "disabled"}>
+            <small>← Previous</small><strong>${previous ? escapeHTML(previous.title) : "Beginning"}</strong>
+          </button>
+          <span class="page-count">Page ${activePage + 1} of ${topics.length}</span>
+          <button class="page-button next" id="next-page" type="button" ${next ? "" : "disabled"}>
+            <small>Next →</small><strong>${next ? escapeHTML(next.title) : "End of guide"}</strong>
+          </button>
+        </nav>
+        <div class="progress" role="progressbar" aria-label="Guide progress" aria-valuemin="1" aria-valuemax="${topics.length}" aria-valuenow="${activePage + 1}">
+          <div class="progress-bar" style="width:${((activePage + 1) / topics.length) * 100}%"></div>
+        </div>
+      `;
+      document.getElementById("previous-page").addEventListener("click", () => goToPage(activePage - 1));
+      document.getElementById("next-page").addEventListener("click", () => goToPage(activePage + 1));
+    }
+
+    function goToPage(index) {
+      if (index < 0 || index >= topics.length || index === activePage) return;
+      activePage = index;
+      renderNav();
+      renderPage();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      document.title = `${topics[activePage].title} | JS ↔ Python`;
+      history.replaceState(null, "", `#${activePage + 1}`);
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      const isDark = theme === "dark";
+      document.getElementById("theme-label").textContent = isDark ? "Light mode" : "Dark mode";
+      document.getElementById("theme-icon").textContent = isDark ? "☀" : "☾";
+      document.getElementById("theme-toggle").setAttribute("aria-label", `Switch to ${isDark ? "light" : "dark"} mode`);
+      document.querySelector('meta[name="theme-color"]').content = isDark ? "#11131b" : "#f6f7fb";
+    }
+
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+      const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      localStorage.setItem("guide-theme", nextTheme);
+      applyTheme(nextTheme);
+    });
+    document.getElementById("home-link").addEventListener("click", event => {
+      event.preventDefault();
+      setView("guide");
+      goToPage(0);
+    });
+    document.getElementById("open-dsa").addEventListener("click", () => setView("dsa"));
+    document.getElementById("back-to-guide").addEventListener("click", () => setView("guide"));
+
+    function setView(view) {
+      const dsaMode = view === "dsa";
+      document.querySelector(".layout").classList.toggle("dsa-view", dsaMode);
+      document.getElementById("topic-content").hidden = dsaMode;
+      document.getElementById("dsa-app").hidden = !dsaMode;
+      document.getElementById("guide-footer").hidden = dsaMode;
+      document.title = dsaMode ? "DSA Practice | JS ↔ Python" : `${topics[activePage].title} | JS ↔ Python`;
+      if (dsaMode) document.getElementById("dsa-app").dispatchEvent(new Event("dsa:open"));
+      const dsaHash = location.hash.startsWith("#level-") ? location.hash : "#dsa";
+      history.replaceState(null, "", dsaMode ? dsaHash : `#${activePage + 1}`);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    document.addEventListener("keydown", event => {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.target.matches("input, textarea, select, [contenteditable=true]")) return;
+      if (document.getElementById("dsa-app").hidden === false) return;
+      if (event.key === "ArrowRight" && activePage < topics.length - 1) goToPage(activePage + 1);
+      if (event.key === "ArrowLeft" && activePage > 0) goToPage(activePage - 1);
+    });
+
+    const savedTheme = localStorage.getItem("guide-theme");
+    const preferredTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    applyTheme(savedTheme || preferredTheme);
+    const hashPage = Number(location.hash.slice(1));
+    if (Number.isInteger(hashPage) && hashPage >= 1 && hashPage <= topics.length) activePage = hashPage - 1;
+    renderNav();
+    renderPage();
+    document.title = `${topics[activePage].title} | JS ↔ Python`;
+    if (location.hash === "#dsa" || location.hash.startsWith("#level-")) setView("dsa");
+  </script>
+<script>
+(function(){
+const dsaNotes = {
+  loops: { why: "A loop expresses repeated work directly and uses constant extra memory.", tricky: "Check the loop's starting value, stopping condition, and whether the endpoint is included.", complexity: "O(n) time; O(1) extra space." },
+  swap: { why: "Multiple assignment swaps both values from one evaluated pair, without a temporary variable or fragile arithmetic.", tricky: "In JavaScript, the function returns a new pair; in Python, the returned pair can be unpacked.", complexity: "O(1) time; O(1) extra space." },
+  arithmetic: { why: "Integer arithmetic computes the result without building an unnecessary collection.", tricky: "Handle zero and negative inputs explicitly; JavaScript numbers have finite precision while Python integers do not.", complexity: "Usually O(log n) time for digit-based work; O(1) extra space." },
+  digits: { why: "Repeated division by 10 exposes one decimal digit at a time.", tricky: "Use the absolute value for digit work, and decide what zero should return before entering a loop.", complexity: "O(log n) time; O(1) extra space." },
+  prime: { why: "Trial division only needs to test factors through the square root: any larger factor would pair with a smaller one.", tricky: "Values below 2 are not prime; stop at d*d <= n to avoid floating-point square roots.", complexity: "O(√n) time per value; O(1) extra space." },
+  gcd: { why: "Euclid's algorithm replaces (a, b) with (b, a mod b), preserving the gcd while quickly shrinking the problem.", tricky: "Normalize signs first; gcd(0, 0) is conventionally returned as 0 here.", complexity: "O(log(min(a,b))) time; O(1) extra space." },
+  arrayScan: { why: "A single pass keeps only the best value seen so far, so it avoids sorting and uses constant extra space.", tricky: "Reject an empty array, and initialize from its first element rather than assuming values are positive.", complexity: "O(n) time; O(1) extra space." },
+  arrayBuild: { why: "A pass builds the required result while visiting each input item once.", tricky: "Return a new collection when the task says not to mutate; empty inputs need an explicit sensible result.", complexity: "O(n) time; O(n) output space." },
+  twoPointers: { why: "Two indices move inward or forward so each item is handled a constant number of times.", tricky: "State whether duplicates matter, and move the correct pointer after every comparison.", complexity: "Usually O(n) time; O(1) extra space (excluding output)." },
+  set: { why: "A set provides average O(1) membership checks and naturally removes duplicates.", tricky: "Preserve order explicitly if required; JavaScript object values compare by identity, not by contents.", complexity: "O(n) average time; O(n) extra space." },
+  hashmap: { why: "A hash map stores a value's count or index, avoiding repeated scans for the same information.", tricky: "Distinguish a missing key from a stored zero/false value, and define duplicate handling.", complexity: "O(n) average time; O(n) extra space." },
+  sort: { why: "Sorting creates an ordering that makes comparisons and grouping straightforward.", tricky: "JavaScript's default sort is lexicographic; use a numeric comparator. Python sort mutates and returns None.", complexity: "O(n log n) time; sorting-space use depends on the algorithm/runtime." },
+  sliding: { why: "A sliding window reuses information from the previous range instead of recomputing every range.", tricky: "Update counts before moving the left edge, and ensure the window invariant stays valid.", complexity: "O(n) time; O(k) space for tracked window values." },
+  prefix: { why: "Prefix/suffix accumulators reuse partial products or sums and avoid nested loops.", tricky: "Initialize with the operation's identity (0 for sum, 1 for product); account for zeros when dividing is tempting.", complexity: "O(n) time; O(n) output space." },
+  stack: { why: "A stack is a natural fit when the most recently seen unresolved item must be handled first.", tricky: "Check for an empty stack before reading its top, and push unresolved values in the right order.", complexity: "Usually O(n) time; O(n) extra space." },
+  queue: { why: "A queue processes items in arrival order (FIFO); a head index or deque avoids shifting every remaining item on removal.", tricky: "Define empty-dequeue behavior and keep the front index separate from the stored array length.", complexity: "O(1) amortized per enqueue/dequeue; O(n) storage." },
+  ringBuffer: { why: "A circular buffer reuses fixed storage by wrapping indices with modulo, avoiding array growth and front-shifts.", tricky: "Track size separately from head so full and empty are distinguishable; capacity must be positive.", complexity: "O(1) time per queue operation; O(capacity) storage." },
+  substring: { why: "Concatenating a string with itself contains every cyclic starting point; a substring check then detects a rotation.", tricky: "Equal lengths are required before the membership test; empty strings count as rotations under this definition.", complexity: "O(n) typical time; O(n) extra space." },
+  binary: { why: "Binary search discards half the remaining sorted search interval at each step.", tricky: "The input must satisfy the required ordering; use a consistent inclusive/exclusive interval to avoid infinite loops.", complexity: "O(log n) time; O(1) extra space." },
+  recursion: { why: "Recursion expresses a problem as a smaller instance plus a base case.", tricky: "Every recursive path must reach a base case; deep recursion can exceed the language's call-stack limit.", complexity: "Depends on the recurrence; recursive calls also consume call-stack space." },
+  tree: { why: "Tree recursion follows child links and combines answers from subtrees.", tricky: "An empty child is the base case; distinguish node depth conventions and traversal order.", complexity: "O(n) time for a tree with n nodes; O(h) call-stack space." },
+  graph: { why: "Adjacency lists visit only actual edges; a visited set prevents repeated work and cycles from looping forever.", tricky: "Mark nodes when enqueued/pushed, not only after removal; graphs may be disconnected.", complexity: "O(V + E) time; O(V) extra space." },
+  dp: { why: "Dynamic programming stores overlapping subproblem answers so each state is computed once.", tricky: "Define the state and base cases first; verify the iteration order doesn't use an unfinished state.", complexity: "See the state table dimensions; usually O(number of states × transitions)." },
+  linked: { why: "Pointer updates operate directly on nodes without shifting array elements.", tricky: "Save the next pointer before changing links, and update the head for empty/first-node cases.", complexity: "Usually O(n) time; O(1) extra space." },
+  heap: { why: "A heap keeps the next smallest or largest candidate available without fully sorting all values.", tricky: "Clarify whether k is 1-based; a size-k heap needs a deliberate min/max orientation.", complexity: "Typically O(n log k) time; O(k) extra space." },
+  lru: { why: "A hash map finds entries quickly and a doubly linked list updates recency in O(1).", tricky: "Detach a node before re-linking it, and evict the least-recent node only when capacity is exceeded.", complexity: "O(1) average per get/put; O(capacity) storage." }
+};
+
+const Q = (title, pattern, summary, js, py, note, tricky = "", complexity = "") =>
+  ({ title, pattern, summary, js, py, note, tricky, complexity });
+
+const dsaLevels = [
+  {
+    title: "Level 1 · Basics",
+    questions: [
+      Q("Print numbers from 1 to 100", "Loop", "Create and return the integers 1 through 100.", `function numbers1To100() {
+  const out = [];
+  for (let n = 1; n <= 100; n++) out.push(n);
+  return out;
+}`, `def numbers_1_to_100():
+    return list(range(1, 101))`, "loops", "The end value is inclusive in the requested output; range's stop value in Python is exclusive."),
+      Q("Print even numbers from 1 to 100", "Loop + modulo", "Return every even integer in the inclusive range.", `function evens1To100() {
+  const out = [];
+  for (let n = 2; n <= 100; n += 2) out.push(n);
+  return out;
+}`, `def evens_1_to_100():
+    return list(range(2, 101, 2))`, "loops", "Starting at 2 and stepping by 2 avoids testing odd values."),
+      Q("Print odd numbers from 1 to 100", "Loop + modulo", "Return every odd integer in the inclusive range.", `function odds1To100() {
+  const out = [];
+  for (let n = 1; n <= 100; n += 2) out.push(n);
+  return out;
+}`, `def odds_1_to_100():
+    return list(range(1, 101, 2))`, "loops", "100 is even, so the final odd value is 99."),
+      Q("Sum numbers from 1 to N", "Arithmetic series", "Return the sum for an integer N >= 0.", `function sumToN(n) {
+  return n * (n + 1) / 2;
+}`, `def sum_to_n(n):
+    return n * (n + 1) // 2`, "arithmetic", "The formula avoids a loop; use integer division in Python."),
+      Q("Factorial of a number", "Loop", "Return n! for a non-negative integer n.", `function factorial(n) {
+  if (n < 0) throw new RangeError("n must be non-negative");
+  let result = 1;
+  for (let i = 2; i <= n; i++) result *= i;
+  return result;
+}`, `def factorial(n):
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    result = 1
+    for i in range(2, n + 1):
+        result *= i
+    return result`, "loops", "By definition 0! = 1; a loop starting at 2 handles both 0 and 1."),
+      Q("Classify a number's sign", "Conditionals", "Return positive, negative, or zero.", `function signOf(n) {
+  return n > 0 ? "positive" : n < 0 ? "negative" : "zero";
+}`, `def sign_of(n):
+    return "positive" if n > 0 else "negative" if n < 0 else "zero"`, "loops", "Test zero separately; it is neither positive nor negative.", "For NaN in JavaScript, all comparisons are false, so this simple function would report zero; validate inputs if NaN is possible."),
+      Q("Check whether a number is prime", "Trial division", "Return true only for primes greater than 1.", `function isPrime(n) {
+  if (!Number.isInteger(n) || n < 2) return false;
+  for (let d = 2; d * d <= n; d++) {
+    if (n % d === 0) return false;
+  }
+  return true;
+}`, `def is_prime(n):
+    if not isinstance(n, int) or isinstance(n, bool) or n < 2:
+        return False
+    d = 2
+    while d * d <= n:
+        if n % d == 0:
+            return False
+        d += 1
+    return True`, "prime", "2 is prime; 1, zero, negatives, and non-integers are not."),
+      Q("Print primes between 1 and 100", "Trial division", "Return all primes in the inclusive range.", `function primesTo100() {
+  const out = [];
+  for (let n = 2; n <= 100; n++) if (isPrime(n)) out.push(n);
+  return out;
+}
+function isPrime(n) {
+  for (let d = 2; d * d <= n; d++) if (n % d === 0) return false;
+  return n >= 2;
+}`, `def primes_to_100():
+    return [n for n in range(2, 101) if is_prime(n)]
+
+def is_prime(n):
+    d = 2
+    while d * d <= n:
+        if n % d == 0:
+            return False
+        d += 1
+    return n >= 2`, "prime", "Sieve of Eratosthenes is faster for a large range; trial division is clear and sufficient for 100."),
+      Q("Reverse a number", "Digit extraction", "Reverse the decimal digits of an integer; keep its sign.", `function reverseNumber(n) {
+  const sign = Math.sign(n);
+  let x = Math.abs(Math.trunc(n)), result = 0;
+  while (x > 0) {
+    result = result * 10 + x % 10;
+    x = Math.floor(x / 10);
+  }
+  return sign * result;
+}`, `def reverse_number(n):
+    sign = -1 if n < 0 else 1
+    x, result = abs(n), 0
+    while x:
+        result = result * 10 + x % 10
+        x //= 10
+    return sign * result`, "digits", "Trailing zeroes disappear in an integer result; e.g. 120 becomes 21."),
+      Q("Check whether a number is a palindrome", "Digit reversal", "Return whether a non-negative integer reads the same backward.", `function isNumberPalindrome(n) {
+  if (!Number.isInteger(n) || n < 0) return false;
+  let x = n, reversed = 0;
+  while (x > 0) {
+    reversed = reversed * 10 + x % 10;
+    x = Math.floor(x / 10);
+  }
+  return n === reversed;
+}`, `def is_number_palindrome(n):
+    if not isinstance(n, int) or isinstance(n, bool) or n < 0:
+        return False
+    x, reversed_n = n, 0
+    while x:
+        reversed_n = reversed_n * 10 + x % 10
+        x //= 10
+    return n == reversed_n`, "digits", "Zero is a palindrome; negative values are excluded because the minus sign is not a digit."),
+      Q("Sum the digits", "Digit extraction", "Return the sum of the decimal digits of an integer.", `function digitSum(n) {
+  let x = Math.abs(Math.trunc(n)), sum = 0;
+  while (x > 0) {
+    sum += x % 10;
+    x = Math.floor(x / 10);
+  }
+  return sum;
+}`, `def digit_sum(n):
+    total = 0
+    for digit in str(abs(n)):
+        total += int(digit)
+    return total`, "digits", "The sum for zero is zero; absolute value keeps a negative sign out of the digits."),
+      Q("Count the digits", "Digit extraction", "Return the number of decimal digits; zero has one digit.", `function digitCount(n) {
+  let x = Math.abs(Math.trunc(n)), count = 0;
+  do { count++; x = Math.floor(x / 10); } while (x > 0);
+  return count;
+}`, `def digit_count(n):
+    return len(str(abs(n)))`, "digits", "A do-while ensures zero is counted as one digit."),
+      Q("Largest of three numbers", "Comparisons", "Return the greatest of three numeric values.", `function largestOfThree(a, b, c) {
+  let largest = a;
+  if (b > largest) largest = b;
+  if (c > largest) largest = c;
+  return largest;
+}`, `def largest_of_three(a, b, c):
+    largest = a
+    if b > largest:
+        largest = b
+    if c > largest:
+        largest = c
+    return largest`, "arrayScan", "Initialize from an input value so all-negative inputs work."),
+      Q("Multiplication table", "Loop", "Return the first 10 multiples of n as a list.", `function multiplicationTable(n) {
+  const out = [];
+  for (let i = 1; i <= 10; i++) out.push(n * i);
+  return out;
+}`, `def multiplication_table(n):
+    return [n * i for i in range(1, 11)]`, "loops", "Use 1 through 10; Python range excludes its stop."),
+      Q("GCD of two numbers", "Euclid's algorithm", "Return the non-negative greatest common divisor.", `function gcd(a, b) {
+  a = Math.abs(a); b = Math.abs(b);
+  while (b !== 0) [a, b] = [b, a % b];
+  return a;
+}`, `def gcd(a, b):
+    a, b = abs(a), abs(b)
+    while b:
+        a, b = b, a % b
+    return a`, "gcd", "Taking absolute values makes the answer non-negative; gcd(a, 0) is |a|."),
+      Q("LCM of two numbers", "GCD + arithmetic", "Return the non-negative least common multiple; 0 if either input is 0.", `function lcm(a, b) {
+  if (a === 0 || b === 0) return 0;
+  return Math.abs((a / gcd(a, b)) * b);
+}
+function gcd(a, b) {
+  a = Math.abs(a); b = Math.abs(b);
+  while (b) [a, b] = [b, a % b];
+  return a;
+}`, `from math import gcd
+
+def lcm(a, b):
+    if a == 0 or b == 0:
+        return 0
+    return abs((a // gcd(a, b)) * b)`, "gcd", "Divide before multiplying to reduce overflow risk; the zero case is defined as zero."),
+      Q("Check an Armstrong number", "Digit arithmetic", "Check whether n equals the sum of its digits raised to the digit count.", `function isArmstrong(n) {
+  if (!Number.isInteger(n) || n < 0) return false;
+  const digits = String(n).split("").map(Number), power = digits.length;
+  return digits.reduce((sum, d) => sum + d ** power, 0) === n;
+}`, `def is_armstrong(n):
+    if not isinstance(n, int) or isinstance(n, bool) or n < 0:
+        return False
+    digits = str(n)
+    return sum(int(d) ** len(digits) for d in digits) == n`, "digits", "The exponent is the number of digits; zero is an Armstrong number."),
+      Q("Fibonacci series", "Iterative state", "Return the first n Fibonacci numbers, starting with 0, 1.", `function fibonacci(n) {
+  const out = [];
+  let a = 0, b = 1;
+  for (let i = 0; i < n; i++) {
+    out.push(a);
+    [a, b] = [b, a + b];
+  }
+  return out;
+}`, `def fibonacci(n):
+    out = []
+    a, b = 0, 1
+    for _ in range(n):
+        out.append(a)
+        a, b = b, a + b
+    return out`, "arrayBuild", "This defines n as a count, so n=0 returns an empty list."),
+      Q("Swap two numbers without a third variable", "Destructuring", "Return the two values in swapped order.", `function swap(a, b) {
+  return [b, a];
+}`, `def swap(a, b):
+    return b, a`, "swap", "Multiple assignment evaluates the right-hand side before assigning."),
+      Q("Power without Math.pow()", "Exponentiation by squaring", "Return base raised to a non-negative integer exponent.", `function power(base, exponent) {
+  if (!Number.isInteger(exponent) || exponent < 0) throw new RangeError("non-negative integer exponent required");
+  let result = 1;
+  while (exponent > 0) {
+    if (exponent % 2 === 1) result *= base;
+    base *= base;
+    exponent = Math.floor(exponent / 2);
+  }
+  return result;
+}`, `def power(base, exponent):
+    if not isinstance(exponent, int) or isinstance(exponent, bool) or exponent < 0:
+        raise ValueError("non-negative integer exponent required")
+    result = 1
+    while exponent:
+        if exponent % 2:
+            result *= base
+        base *= base
+        exponent //= 2
+    return result`, "arithmetic", "Exponent zero returns 1; repeated squaring uses logarithmically many multiplications.")
+    ]
+  },
+  {
+    title: "Level 7 · Recursion, trees & graphs",
+    questions: [
+      Q("Factorial using recursion", "Recursion", "Return n! for a non-negative integer.", `function factorialRecursive(n) {
+  if (n < 0) throw new RangeError("n must be non-negative");
+  return n <= 1 ? 1 : n * factorialRecursive(n - 1);
+}`, `def factorial_recursive(n):
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    return 1 if n <= 1 else n * factorial_recursive(n - 1)`, "recursion", "0! is 1; large n can exceed recursion limits, so the iterative version is safer."),
+      Q("Fibonacci using recursion", "Recursion", "Return the zero-based Fibonacci value F(n), where F(0)=0.", `function fibRecursive(n) {
+  if (n < 0) throw new RangeError("n must be non-negative");
+  return n < 2 ? n : fibRecursive(n - 1) + fibRecursive(n - 2);
+}`, `def fib_recursive(n):
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    return n if n < 2 else fib_recursive(n - 1) + fib_recursive(n - 2)`, "recursion", "This direct teaching version repeats work exponentially; memoize it or use an iterative DP solution for larger n.", "O(2^n) time; O(n) call-stack space."),
+      Q("Reverse a string recursively", "Recursion", "Return characters in reverse order.", `function reverseRecursive(s) {
+  if (s.length <= 1) return s;
+  return reverseRecursive(s.slice(1)) + s[0];
+}`, `def reverse_recursive(s):
+    if len(s) <= 1:
+        return s
+    return reverse_recursive(s[1:]) + s[0]`, "recursion", "Repeated slicing/concatenation allocates new strings; use an iterative method for large input."),
+      Q("Sum array recursively", "Recursion", "Return the sum of all numeric values.", `function recursiveSum(a, i = 0) {
+  return i === a.length ? 0 : a[i] + recursiveSum(a, i + 1);
+}`, `def recursive_sum(a, i=0):
+    return 0 if i == len(a) else a[i] + recursive_sum(a, i + 1)`, "recursion", "Empty input is the base case; recursion depth grows linearly with array length."),
+      Q("Implement a binary tree node", "Tree structure", "Define a node with a value and optional left/right children.", `class TreeNode {
+  constructor(value, left = null, right = null) {
+    this.value = value; this.left = left; this.right = right;
+  }
+}`, `class TreeNode:
+    def __init__(self, value, left=None, right=None):
+        self.value = value
+        self.left = left
+        self.right = right`, "tree", "A node structure alone does not impose ordering; a binary search tree has additional ordering rules."),
+      Q("Inorder traversal", "Depth-first traversal", "Return left, node, right values.", `function inorder(root, out = []) {
+  if (!root) return out;
+  inorder(root.left, out); out.push(root.value); inorder(root.right, out);
+  return out;
+}`, `def inorder(root):
+    if not root:
+        return []
+    return inorder(root.left) + [root.value] + inorder(root.right)`, "tree", "Inorder traversal is sorted only when the tree is a valid binary search tree."),
+      Q("Preorder traversal", "Depth-first traversal", "Return node, left, right values.", `function preorder(root, out = []) {
+  if (!root) return out;
+  out.push(root.value); preorder(root.left, out); preorder(root.right, out);
+  return out;
+}`, `def preorder(root):
+    if not root:
+        return []
+    return [root.value] + preorder(root.left) + preorder(root.right)`, "tree", "Visit the current node before recursing into either child."),
+      Q("Postorder traversal", "Depth-first traversal", "Return left, right, node values.", `function postorder(root, out = []) {
+  if (!root) return out;
+  postorder(root.left, out); postorder(root.right, out); out.push(root.value);
+  return out;
+}`, `def postorder(root):
+    if not root:
+        return []
+    return postorder(root.left) + postorder(root.right) + [root.value]`, "tree", "The node is appended after both children; useful when children must be processed first."),
+      Q("Maximum depth of a binary tree", "Tree recursion", "Count nodes on the longest root-to-leaf path; empty tree depth is zero.", `function maxDepth(root) {
+  return root ? 1 + Math.max(maxDepth(root.left), maxDepth(root.right)) : 0;
+}`, `def max_depth(root):
+    return 1 + max(max_depth(root.left), max_depth(root.right)) if root else 0`, "tree", "This defines depth as node count; some problems define it as edge count, differing by one."),
+      Q("Check whether two trees are identical", "Tree recursion", "Compare structure and values recursively.", `function sameTree(a, b) {
+  if (!a || !b) return a === b;
+  return a.value === b.value && sameTree(a.left, b.left) && sameTree(a.right, b.right);
+}`, `def same_tree(a, b):
+    if a is None or b is None:
+        return a is b
+    return (a.value == b.value and same_tree(a.left, b.left)
+            and same_tree(a.right, b.right))`, "tree", "Matching values is not enough; corresponding child structure must also match."),
+      Q("Graph using an adjacency list", "Adjacency list", "Build an undirected graph from vertex count and edge pairs.", `function makeGraph(n, edges) {
+  const graph = Array.from({ length: n }, () => []);
+  for (const [a, b] of edges) { graph[a].push(b); graph[b].push(a); }
+  return graph;
+}`, `def make_graph(n, edges):
+    graph = [[] for _ in range(n)]
+    for a, b in edges:
+        graph[a].append(b)
+        graph[b].append(a)
+    return graph`, "graph", "This is undirected; for a directed graph, add only a -> b. Vertices here are integers 0..n-1."),
+      Q("Breadth-first search", "Queue", "Return visitation order from start in an adjacency-list graph.", `function bfs(graph, start) {
+  const seen = new Set([start]), queue = [start], order = [];
+  for (let head = 0; head < queue.length; head++) {
+    const node = queue[head]; order.push(node);
+    for (const next of graph[node]) if (!seen.has(next)) { seen.add(next); queue.push(next); }
+  }
+  return order;
+}`, `from collections import deque
+
+def bfs(graph, start):
+    seen, queue, order = {start}, deque([start]), []
+    while queue:
+        node = queue.popleft()
+        order.append(node)
+        for nxt in graph[node]:
+            if nxt not in seen:
+                seen.add(nxt)
+                queue.append(nxt)
+    return order`, "graph", "Mark visited on enqueue to prevent duplicate queue entries; this visits only the start component."),
+      Q("Depth-first search", "Stack", "Return iterative DFS visitation order from start.", `function dfs(graph, start) {
+  const seen = new Set(), stack = [start], order = [];
+  while (stack.length) {
+    const node = stack.pop();
+    if (seen.has(node)) continue;
+    seen.add(node); order.push(node);
+    for (let i = graph[node].length - 1; i >= 0; i--) if (!seen.has(graph[node][i])) stack.push(graph[node][i]);
+  }
+  return order;
+}`, `def dfs(graph, start):
+    seen, stack, order = set(), [start], []
+    while stack:
+        node = stack.pop()
+        if node in seen:
+            continue
+        seen.add(node)
+        order.append(node)
+        stack.extend(reversed(graph[node]))
+    return order`, "graph", "Push neighbors in reverse if you want visitation to follow the adjacency-list order."),
+      Q("Detect a cycle in an undirected graph", "DFS + parent", "Return true if any connected component contains a cycle.", `function hasUndirectedCycle(graph) {
+  const seen = new Set();
+  function visit(v, parent) {
+    seen.add(v);
+    for (const n of graph[v]) {
+      if (!seen.has(n)) { if (visit(n, v)) return true; }
+      else if (n !== parent) return true;
+    }
+    return false;
+  }
+  for (let v = 0; v < graph.length; v++) if (!seen.has(v) && visit(v, -1)) return true;
+  return false;
+}`, `def has_undirected_cycle(graph):
+    seen = set()
+    def visit(v, parent):
+        seen.add(v)
+        for n in graph[v]:
+            if n not in seen:
+                if visit(n, v):
+                    return True
+            elif n != parent:
+                return True
+        return False
+    return any(visit(v, -1) for v in range(len(graph)) if v not in seen)`, "graph", "This assumes an undirected adjacency list with no duplicated self-loop representation; directed graphs need a different cycle test."),
+      Q("Shortest path in an unweighted graph", "BFS + parent map", "Return a shortest path from start to target, or null/None if unreachable.", `function shortestPath(graph, start, target) {
+  const parent = new Map([[start, null]]), queue = [start];
+  for (let h = 0; h < queue.length; h++) {
+    const v = queue[h];
+    if (v === target) break;
+    for (const n of graph[v]) if (!parent.has(n)) { parent.set(n, v); queue.push(n); }
+  }
+  if (!parent.has(target)) return null;
+  const path = [];
+  for (let v = target; v !== null; v = parent.get(v)) path.push(v);
+  return path.reverse();
+}`, `from collections import deque
+
+def shortest_path(graph, start, target):
+    parent, queue = {start: None}, deque([start])
+    while queue:
+        v = queue.popleft()
+        if v == target:
+            break
+        for n in graph[v]:
+            if n not in parent:
+                parent[n] = v
+                queue.append(n)
+    if target not in parent:
+        return None
+    path, v = [], target
+    while v is not None:
+        path.append(v)
+        v = parent[v]
+    return path[::-1]`, "graph", "BFS guarantees the fewest edges only when every edge has equal weight; start==target returns [start].")
+    ]
+  },
+  {
+    title: "Level 8 · Dynamic programming",
+    questions: [
+      Q("Fibonacci using dynamic programming", "Tabulation", "Return the zero-based Fibonacci value F(n).", `function fibDP(n) {
+  let a = 0, b = 1;
+  for (let i = 0; i < n; i++) [a, b] = [b, a + b];
+  return a;
+}`, `def fib_dp(n):
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a`, "dp", "The two previous values are enough, so a full table is unnecessary.", "O(n) time; O(1) extra space."),
+      Q("Climbing stairs", "One-dimensional DP", "Count ways to reach n using steps of 1 or 2; n >= 0.", `function climbStairs(n) {
+  let a = 1, b = 1;
+  for (let i = 2; i <= n; i++) [a, b] = [b, a + b];
+  return b;
+}`, `def climb_stairs(n):
+    a, b = 1, 1
+    for _ in range(2, n + 1):
+        a, b = b, a + b
+    return b`, "dp", "There is one way to climb zero steps (do nothing); negatives are outside the stated input."),
+      Q("Coin change: minimum coins", "Unbounded DP", "Return fewest coins for amount, or -1 if impossible; coin values are positive.", `function minCoins(coins, amount) {
+  const dp = Array(amount + 1).fill(Infinity); dp[0] = 0;
+  for (let x = 1; x <= amount; x++) for (const c of coins) if (c <= x) dp[x] = Math.min(dp[x], dp[x - c] + 1);
+  return dp[amount] === Infinity ? -1 : dp[amount];
+}`, `def min_coins(coins, amount):
+    dp = [0] + [float("inf")] * amount
+    for x in range(1, amount + 1):
+        dp[x] = min((dp[x - c] + 1 for c in coins if c <= x), default=float("inf"))
+    return -1 if dp[amount] == float("inf") else dp[amount]`, "dp", "Each coin can be reused; reject non-positive denominations to prevent invalid transitions."),
+      Q("0/1 Knapsack", "Two-dimensional DP", "Return maximum value using each item at most once within capacity.", `function knapsack(weights, values, capacity) {
+  const dp = Array(capacity + 1).fill(0);
+  for (let i = 0; i < weights.length; i++)
+    for (let c = capacity; c >= weights[i]; c--)
+      dp[c] = Math.max(dp[c], dp[c - weights[i]] + values[i]);
+  return dp[capacity];
+}`, `def knapsack(weights, values, capacity):
+    dp = [0] * (capacity + 1)
+    for weight, value in zip(weights, values):
+        for c in range(capacity, weight - 1, -1):
+            dp[c] = max(dp[c], dp[c - weight] + value)
+    return dp[capacity]`, "dp", "Iterate capacity downward; upward iteration would allow reusing an item (unbounded knapsack)."),
+      Q("Longest common subsequence", "2D DP", "Return the LCS length of two strings.", `function lcs(a, b) {
+  const dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+  return dp[a.length][b.length];
+}`, `def lcs(a, b):
+    dp = [[0] * (len(b) + 1) for _ in range(len(a) + 1)]
+    for i in range(1, len(a) + 1):
+        for j in range(1, len(b) + 1):
+            dp[i][j] = dp[i-1][j-1] + 1 if a[i-1] == b[j-1] else max(dp[i-1][j], dp[i][j-1])
+    return dp[-1][-1]`, "dp", "Subsequence preserves order but need not be contiguous; empty-prefix rows/columns are zero."),
+      Q("Longest increasing subsequence", "Patience sorting", "Return the length of a strictly increasing subsequence.", `function lis(a) {
+  const tails = [];
+  for (const x of a) {
+    let lo = 0, hi = tails.length;
+    while (lo < hi) { const m = (lo + hi) >> 1; if (tails[m] < x) lo = m + 1; else hi = m; }
+    tails[lo] = x;
+  }
+  return tails.length;
+}`, `from bisect import bisect_left
+
+def lis(a):
+    tails = []
+    for x in a:
+        i = bisect_left(tails, x)
+        if i == len(tails):
+            tails.append(x)
+        else:
+            tails[i] = x
+    return len(tails)`, "binary", "tails stores best possible tail values, not the actual subsequence; lower_bound makes the result strictly increasing."),
+      Q("Maximum sum of non-adjacent elements", "Rolling DP", "Return the maximum sum; choosing no elements is allowed, so empty/all-negative result is 0.", `function maxNonAdjacent(a) {
+  let skip = 0, take = 0;
+  for (const x of a) [skip, take] = [Math.max(skip, take), skip + x];
+  return Math.max(skip, take);
+}`, `def max_non_adjacent(a):
+    skip = take = 0
+    for x in a:
+        skip, take = max(skip, take), skip + x
+    return max(skip, take)`, "dp", "State means best if previous item is skipped or taken; this version permits taking nothing."),
+      Q("House robber", "Rolling DP", "Return maximum non-adjacent house value; no houses yields zero.", `function rob(nums) {
+  let twoBack = 0, oneBack = 0;
+  for (const x of nums) [twoBack, oneBack] = [oneBack, Math.max(oneBack, twoBack + x)];
+  return oneBack;
+}`, `def rob(nums):
+    two_back = one_back = 0
+    for x in nums:
+        two_back, one_back = one_back, max(one_back, two_back + x)
+    return one_back`, "dp", "Taking adjacent houses is forbidden; starting from zero also handles negative values by robbing none."),
+      Q("Minimum path sum", "Grid DP", "Find minimum sum from top-left to bottom-right, moving only right/down.", `function minPathSum(grid) {
+  if (!grid.length || !grid[0].length) return 0;
+  const dp = Array(grid[0].length).fill(Infinity);
+  dp[0] = grid[0][0];
+  for (let r = 0; r < grid.length; r++) for (let c = 0; c < grid[0].length; c++) {
+    if (!r && !c) continue;
+    dp[c] = grid[r][c] + Math.min(r ? dp[c] : Infinity, c ? dp[c - 1] : Infinity);
+  }
+  return dp.at(-1);
+}`, `def min_path_sum(grid):
+    if not grid or not grid[0]:
+        return 0
+    dp = [float("inf")] * len(grid[0])
+    dp[0] = 0
+    for row in grid:
+        for c, value in enumerate(row):
+            dp[c] = value + min(dp[c], dp[c - 1] if c else float("inf"))
+    return dp[-1]`, "dp", "dp[c] is the value from above; dp[c-1] is the already-updated value from the left."),
+      Q("Edit distance", "2D DP", "Return minimum insertions, deletions, and substitutions to turn a into b.", `function editDistance(a, b) {
+  let dp = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const next = [i];
+    for (let j = 1; j <= b.length; j++) next[j] = a[i-1] === b[j-1] ? dp[j-1] : 1 + Math.min(dp[j], next[j-1], dp[j-1]);
+    dp = next;
+  }
+  return dp[b.length];
+}`, `def edit_distance(a, b):
+    dp = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        nxt = [i]
+        for j, cb in enumerate(b, 1):
+            nxt.append(dp[j-1] if ca == cb else 1 + min(dp[j], nxt[j-1], dp[j-1]))
+        dp = nxt
+    return dp[-1]`, "dp", "Initialize empty-string costs: converting length i to empty costs i deletions; each mismatch considers three operations."),
+      Q("Word break", "Boolean DP", "Return whether s can be segmented into dictionary words.", `function wordBreak(s, words) {
+  const dict = new Set(words), dp = Array(s.length + 1).fill(false); dp[0] = true;
+  for (let end = 1; end <= s.length; end++)
+    for (let start = 0; start < end; start++)
+      if (dp[start] && dict.has(s.slice(start, end))) { dp[end] = true; break; }
+  return dp[s.length];
+}`, `def word_break(s, words):
+    word_set = set(words)
+    dp = [False] * (len(s) + 1)
+    dp[0] = True
+    for end in range(1, len(s) + 1):
+        dp[end] = any(dp[start] and s[start:end] in word_set for start in range(end))
+    return dp[-1]`, "dp", "A reachable prefix is required before accepting a final word; empty string is segmentable."),
+      Q("Subset sum", "Boolean DP", "Return whether a subset of non-negative integers sums to target.", `function subsetSum(nums, target) {
+  const dp = Array(target + 1).fill(false); dp[0] = true;
+  for (const x of nums) for (let s = target; s >= x; s--) dp[s] ||= dp[s - x];
+  return dp[target];
+}`, `def subset_sum(nums, target):
+    dp = [False] * (target + 1)
+    dp[0] = True
+    for x in nums:
+        for total in range(target, x - 1, -1):
+            dp[total] = dp[total] or dp[total - x]
+    return dp[target]`, "dp", "Iterate totals downward to use each number once; inputs and target are assumed non-negative."),
+      Q("Unique paths in a grid", "Grid DP", "Count paths in an m by n empty grid, moving only right or down.", `function uniquePaths(m, n) {
+  if (m <= 0 || n <= 0) return 0;
+  const dp = Array(n).fill(1);
+  for (let r = 1; r < m; r++) for (let c = 1; c < n; c++) dp[c] += dp[c - 1];
+  return dp[n - 1];
+}`, `def unique_paths(m, n):
+    if m <= 0 or n <= 0:
+        return 0
+    dp = [1] * n
+    for _ in range(1, m):
+        for c in range(1, n):
+            dp[c] += dp[c - 1]
+    return dp[-1]`, "dp", "First row and first column each have exactly one path; big grids can exceed JavaScript Number's safe integer range."),
+      Q("Longest palindromic subsequence", "Interval DP", "Return the length of the longest palindromic subsequence.", `function lps(s) {
+  const n = s.length, dp = Array.from({ length: n }, () => Array(n).fill(0));
+  for (let i = n - 1; i >= 0; i--) {
+    dp[i][i] = 1;
+    for (let j = i + 1; j < n; j++)
+      dp[i][j] = s[i] === s[j] ? 2 + (j === i + 1 ? 0 : dp[i + 1][j - 1]) : Math.max(dp[i + 1][j], dp[i][j - 1]);
+  }
+  return n ? dp[0][n - 1] : 0;
+}`, `def lps(s):
+    n = len(s)
+    dp = [[0] * n for _ in range(n)]
+    for i in range(n - 1, -1, -1):
+        dp[i][i] = 1
+        for j in range(i + 1, n):
+            dp[i][j] = 2 + (dp[i+1][j-1] if j > i + 1 else 0) if s[i] == s[j] else max(dp[i+1][j], dp[i][j-1])
+    return dp[0][-1] if n else 0`, "dp", "Fill shorter intervals before longer ones; subsequence may skip characters, unlike substring."),
+      Q("Maximum product subarray", "Track min and max", "Return the maximum product of a non-empty contiguous subarray.", `function maxProduct(a) {
+  if (!a.length) throw new RangeError("array must not be empty");
+  let max = a[0], min = a[0], best = a[0];
+  for (const x of a.slice(1)) {
+    if (x < 0) [max, min] = [min, max];
+    max = Math.max(x, max * x); min = Math.min(x, min * x);
+    best = Math.max(best, max);
+  }
+  return best;
+}`, `def max_product(a):
+    if not a:
+        raise ValueError("array must not be empty")
+    high = low = best = a[0]
+    for x in a[1:]:
+        if x < 0:
+            high, low = low, high
+        high, low = max(x, high * x), min(x, low * x)
+        best = max(best, high)
+    return best`, "dp", "A negative value swaps the roles of the minimum and maximum products; zero resets the running product naturally.", "O(n) time; O(1) extra space.")
+    ]
+  }
+,
+  {
+    title: "Level 6 · Stack, queue & list",
+    questions: [
+      Q("Implement a stack using an array", "LIFO", "Provide push, pop, peek, and size.", `class Stack {
+  items = [];
+  push(x) { this.items.push(x); }
+  pop() { return this.items.pop() ?? null; }
+  peek() { return this.items.at(-1) ?? null; }
+  get size() { return this.items.length; }
+}`, `class Stack:
+    def __init__(self):
+        self.items = []
+    def push(self, x):
+        self.items.append(x)
+    def pop(self):
+        return self.items.pop() if self.items else None
+    def peek(self):
+        return self.items[-1] if self.items else None
+    def __len__(self):
+        return len(self.items)`, "stack", "LIFO means last in, first out; define empty-pop behavior rather than relying on a runtime exception."),
+      Q("Reverse a string using a stack", "Stack", "Push characters then pop them into reversed order.", `function reverseWithStack(s) {
+  const stack = Array.from(s), out = [];
+  while (stack.length) out.push(stack.pop());
+  return out.join("");
+}`, `def reverse_with_stack(s):
+    stack, out = list(s), []
+    while stack:
+        out.append(stack.pop())
+    return "".join(out)`, "stack", "A stack reverses order because its newest item is removed first."),
+      Q("Balanced parentheses", "Stack", "Check (), [], and {} nesting; ignore non-bracket characters.", `function balanced(s) {
+  const pairs = { ")": "(", "]": "[", "}": "{" }, stack = [];
+  for (const c of s) {
+    if ("([{".includes(c)) stack.push(c);
+    else if (c in pairs && stack.pop() !== pairs[c]) return false;
+  }
+  return stack.length === 0;
+}`, `def balanced(s):
+    pairs, stack = {")": "(", "]": "[", "}": "{"}, []
+    for c in s:
+        if c in "([{":
+            stack.append(c)
+        elif c in pairs and (not stack or stack.pop() != pairs[c]):
+            return False
+    return not stack`, "stack", "A closing bracket must match the most recent unmatched opening bracket; also reject leftover openings."),
+      Q("Next greater element", "Monotonic stack", "For each value, return the next strictly greater value to its right, or -1.", `function nextGreater(a) {
+  const out = Array(a.length).fill(-1), stack = [];
+  for (let i = 0; i < a.length; i++) {
+    while (stack.length && a[i] > a[stack.at(-1)]) out[stack.pop()] = a[i];
+    stack.push(i);
+  }
+  return out;
+}`, `def next_greater(a):
+    out, stack = [-1] * len(a), []
+    for i, x in enumerate(a):
+        while stack and x > a[stack[-1]]:
+            out[stack.pop()] = x
+        stack.append(i)
+    return out`, "stack", "Store indices, not values, so answers land at the right positions; equal values are not greater."),
+      Q("Implement Min Stack", "Auxiliary stack", "Support push, pop, top, and getMin in O(1).", `class MinStack {
+  data = []; mins = [];
+  push(x) { this.data.push(x); if (!this.mins.length || x <= this.getMin()) this.mins.push(x); }
+  pop() { const x = this.data.pop(); if (x === this.mins.at(-1)) this.mins.pop(); return x ?? null; }
+  top() { return this.data.at(-1) ?? null; }
+  getMin() { return this.mins.at(-1) ?? null; }
+}`, `class MinStack:
+    def __init__(self):
+        self.data, self.mins = [], []
+    def push(self, x):
+        self.data.append(x)
+        if not self.mins or x <= self.mins[-1]:
+            self.mins.append(x)
+    def pop(self):
+        x = self.data.pop()
+        if x == self.mins[-1]:
+            self.mins.pop()
+        return x
+    def top(self):
+        return self.data[-1]
+    def get_min(self):
+        return self.mins[-1]`, "stack", "Push duplicate minima too, so popping one equal minimum does not lose the next one."),
+      Q("Implement a queue using an array", "FIFO + head index", "Provide enqueue, dequeue, and peek without shifting the whole array.", `class Queue {
+  data = []; head = 0;
+  enqueue(x) { this.data.push(x); }
+  dequeue() {
+    if (this.head === this.data.length) return null;
+    const x = this.data[this.head++];
+    if (this.head > 32 && this.head * 2 > this.data.length) { this.data = this.data.slice(this.head); this.head = 0; }
+    return x;
+  }
+  peek() { return this.data[this.head] ?? null; }
+}`, `from collections import deque
+
+class Queue:
+    def __init__(self):
+        self.data = deque()
+    def enqueue(self, x):
+        self.data.append(x)
+    def dequeue(self):
+        return self.data.popleft() if self.data else None
+    def peek(self):
+        return self.data[0] if self.data else None`, "queue", "Array.shift() is O(n); a head index or deque keeps dequeue efficient."),
+      Q("Implement a circular queue", "Fixed buffer", "Use a fixed capacity ring buffer; enqueue returns false when full.", `class CircularQueue {
+  constructor(k) { this.data = Array(k); this.head = 0; this.size = 0; }
+  enqueue(x) { if (this.size === this.data.length) return false; this.data[(this.head + this.size++) % this.data.length] = x; return true; }
+  dequeue() { if (!this.size) return null; const x = this.data[this.head]; this.head = (this.head + 1) % this.data.length; this.size--; return x; }
+  front() { return this.size ? this.data[this.head] : null; }
+}`, `class CircularQueue:
+    def __init__(self, k):
+        self.data, self.head, self.size = [None] * k, 0, 0
+    def enqueue(self, x):
+        if self.size == len(self.data):
+            return False
+        self.data[(self.head + self.size) % len(self.data)] = x
+        self.size += 1
+        return True
+    def dequeue(self):
+        if not self.size:
+            return None
+        x = self.data[self.head]
+        self.head = (self.head + 1) % len(self.data)
+        self.size -= 1
+        return x`, "ringBuffer", "Capacity must be positive; modulo wraps indices to the start of the buffer."),
+      Q("Queue using two stacks", "Amortized stack transfer", "Implement enqueue and dequeue; each item moves stacks at most once.", `class TwoStackQueue {
+  input = []; output = [];
+  enqueue(x) { this.input.push(x); }
+  dequeue() {
+    if (!this.output.length) while (this.input.length) this.output.push(this.input.pop());
+    return this.output.pop() ?? null;
+  }
+}`, `class TwoStackQueue:
+    def __init__(self):
+        self.input, self.output = [], []
+    def enqueue(self, x):
+        self.input.append(x)
+    def dequeue(self):
+        if not self.output:
+            while self.input:
+                self.output.append(self.input.pop())
+        return self.output.pop() if self.output else None`, "stack", "Transfer only when the output stack is empty; transferring every dequeue breaks amortized O(1) time."),
+      Q("Implement a singly linked list", "Node chain", "Create a list with append and iteration.", `class Node { constructor(value) { this.value = value; this.next = null; } }
+class LinkedList {
+  head = null; tail = null;
+  append(value) {
+    const node = new Node(value);
+    if (!this.head) this.head = node; else this.tail.next = node;
+    this.tail = node;
+  }
+  *values() { for (let n = this.head; n; n = n.next) yield n.value; }
+}`, `class Node:
+    def __init__(self, value):
+        self.value, self.next = value, None
+
+class LinkedList:
+    def __init__(self):
+        self.head = self.tail = None
+    def append(self, value):
+        node = Node(value)
+        if self.tail:
+            self.tail.next = node
+        else:
+            self.head = node
+        self.tail = node`, "linked", "Maintain both head and tail to append in O(1); an empty list has both set to None."),
+      Q("Insert node at beginning", "Head pointer", "Insert value before the current head; return the new head.", `function insertBeginning(head, value) {
+  const node = { value, next: head };
+  return node;
+}`, `class Node:
+    def __init__(self, value):
+        self.value, self.next = value, None
+
+def insert_beginning(head, value):
+    node = Node(value)
+    node.next = head
+    return node`, "linked", "The caller must store the returned head; assigning node.next first preserves the old chain."),
+      Q("Insert node at end", "Tail traversal", "Append to a singly linked list and return its head.", `function insertEnd(head, value) {
+  const node = { value, next: null };
+  if (!head) return node;
+  let current = head;
+  while (current.next) current = current.next;
+  current.next = node;
+  return head;
+}`, `class Node:
+    def __init__(self, value):
+        self.value, self.next = value, None
+
+def insert_end(head, value):
+    node = Node(value)
+    if head is None:
+        return node
+    current = head
+    while current.next:
+        current = current.next
+    current.next = node
+    return head`, "linked", "An empty list returns the new node as head; a maintained tail pointer makes append O(1)."),
+      Q("Delete a node by value", "Pointer relinking", "Delete the first matching node; return the possibly updated head.", `function deleteValue(head, value) {
+  if (!head) return null;
+  if (head.value === value) return head.next;
+  let node = head;
+  while (node.next && node.next.value !== value) node = node.next;
+  if (node.next) node.next = node.next.next;
+  return head;
+}`, `def delete_value(head, value):
+    if head is None:
+        return None
+    if head.value == value:
+        return head.next
+    node = head
+    while node.next and node.next.value != value:
+        node = node.next
+    if node.next:
+        node.next = node.next.next
+    return head`, "linked", "Deleting the head is a special case; this removes only the first matching node."),
+      Q("Reverse a linked list", "Three pointers", "Reverse links in place and return the new head.", `function reverseList(head) {
+  let prev = null, current = head;
+  while (current) { const next = current.next; current.next = prev; prev = current; current = next; }
+  return prev;
+}`, `def reverse_list(head):
+    prev, current = None, head
+    while current:
+        nxt = current.next
+        current.next = prev
+        prev, current = current, nxt
+    return prev`, "linked", "Save next before overwriting current.next, or the rest of the list becomes unreachable."),
+      Q("Find middle node", "Slow + fast pointers", "Return the second middle for an even-length list.", `function middleNode(head) {
+  let slow = head, fast = head;
+  while (fast && fast.next) { slow = slow.next; fast = fast.next.next; }
+  return slow;
+}`, `def middle_node(head):
+    slow = fast = head
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+    return slow`, "linked", "Fast advances twice as quickly; for even length this convention returns the second of the two middles."),
+      Q("Detect a linked-list cycle", "Floyd's algorithm", "Return true if the next pointers eventually revisit a node.", `function hasCycle(head) {
+  let slow = head, fast = head;
+  while (fast && fast.next) {
+    slow = slow.next; fast = fast.next.next;
+    if (slow === fast) return true;
+  }
+  return false;
+}`, `def has_cycle(head):
+    slow = fast = head
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow is fast:
+            return True
+    return False`, "linked", "Compare node identity, not node values; equal values do not imply a cycle.")
+    ]
+  }
+,
+  {
+    title: "Level 5 · Search & sort",
+    questions: [
+      Q("Linear search", "Sequential scan", "Return the index of target's first occurrence, or -1.", `function linearSearch(a, target) {
+  for (let i = 0; i < a.length; i++) if (a[i] === target) return i;
+  return -1;
+}`, `def linear_search(a, target):
+    for i, x in enumerate(a):
+        if x == target:
+            return i
+    return -1`, "arrayScan", "Works on unsorted input; stop at first match to return the first index."),
+      Q("Binary search", "Binary search", "Return target's index in an ascending sorted array, or -1.", `function binarySearch(a, target) {
+  let lo = 0, hi = a.length - 1;
+  while (lo <= hi) {
+    const mid = lo + Math.floor((hi - lo) / 2);
+    if (a[mid] === target) return mid;
+    if (a[mid] < target) lo = mid + 1; else hi = mid - 1;
+  }
+  return -1;
+}`, `def binary_search(a, target):
+    lo, hi = 0, len(a) - 1
+    while lo <= hi:
+        mid = lo + (hi - lo) // 2
+        if a[mid] == target:
+            return mid
+        if a[mid] < target:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return -1`, "binary", "Sorted ascending input is mandatory; the midpoint formula avoids integer overflow in fixed-width languages."),
+      Q("First occurrence of an element", "Lower bound", "Return the first target index in a sorted array, or -1.", `function firstOccurrence(a, x) {
+  let lo = 0, hi = a.length;
+  while (lo < hi) { const m = lo + Math.floor((hi - lo) / 2); if (a[m] < x) lo = m + 1; else hi = m; }
+  return lo < a.length && a[lo] === x ? lo : -1;
+}`, `def first_occurrence(a, x):
+    lo, hi = 0, len(a)
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if a[mid] < x:
+            lo = mid + 1
+        else:
+            hi = mid
+    return lo if lo < len(a) and a[lo] == x else -1`, "binary", "Use a half-open [lo, hi) interval; lower bound finds the insertion point before duplicates."),
+      Q("Last occurrence of an element", "Upper bound", "Return the last target index in a sorted array, or -1.", `function lastOccurrence(a, x) {
+  let lo = 0, hi = a.length;
+  while (lo < hi) { const m = lo + Math.floor((hi - lo) / 2); if (a[m] <= x) lo = m + 1; else hi = m; }
+  return lo > 0 && a[lo - 1] === x ? lo - 1 : -1;
+}`, `def last_occurrence(a, x):
+    lo, hi = 0, len(a)
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if a[mid] <= x:
+            lo = mid + 1
+        else:
+            hi = mid
+    return lo - 1 if lo > 0 and a[lo - 1] == x else -1`, "binary", "Upper bound finds the first position greater than target, so the last match is one index before it."),
+      Q("Bubble sort", "Adjacent swaps", "Return a sorted copy in ascending order.", `function bubbleSort(a) {
+  const out = a.slice();
+  for (let end = out.length - 1; end > 0; end--) {
+    let changed = false;
+    for (let i = 0; i < end; i++) if (out[i] > out[i + 1]) {
+      [out[i], out[i + 1]] = [out[i + 1], out[i]]; changed = true;
+    }
+    if (!changed) break;
+  }
+  return out;
+}`, `def bubble_sort(a):
+    out = a.copy()
+    for end in range(len(out) - 1, 0, -1):
+        changed = False
+        for i in range(end):
+            if out[i] > out[i + 1]:
+                out[i], out[i + 1] = out[i + 1], out[i]
+                changed = True
+        if not changed:
+            break
+    return out`, "sort", "Each pass moves its largest remaining value to the end; this is mainly educational, not for large inputs."),
+      Q("Selection sort", "Select minimum", "Return a sorted copy in ascending order.", `function selectionSort(a) {
+  const out = a.slice();
+  for (let i = 0; i < out.length; i++) {
+    let min = i;
+    for (let j = i + 1; j < out.length; j++) if (out[j] < out[min]) min = j;
+    [out[i], out[min]] = [out[min], out[i]];
+  }
+  return out;
+}`, `def selection_sort(a):
+    out = a.copy()
+    for i in range(len(out)):
+        m = min(range(i, len(out)), key=out.__getitem__)
+        out[i], out[m] = out[m], out[i]
+    return out`, "sort", "Repeatedly place the smallest remaining value; O(n²) comparisons even when already sorted."),
+      Q("Insertion sort", "Sorted prefix", "Return a sorted copy in ascending order.", `function insertionSort(a) {
+  const out = a.slice();
+  for (let i = 1; i < out.length; i++) {
+    const value = out[i]; let j = i - 1;
+    while (j >= 0 && out[j] > value) { out[j + 1] = out[j]; j--; }
+    out[j + 1] = value;
+  }
+  return out;
+}`, `def insertion_sort(a):
+    out = a.copy()
+    for i in range(1, len(out)):
+        value, j = out[i], i - 1
+        while j >= 0 and out[j] > value:
+            out[j + 1] = out[j]
+            j -= 1
+        out[j + 1] = value
+    return out`, "sort", "Shift larger values right, then fill the hole; stable because equal values are not shifted."),
+      Q("Merge sort", "Divide and conquer", "Return a stable sorted copy.", `function mergeSort(a) {
+  if (a.length < 2) return a.slice();
+  const m = Math.floor(a.length / 2), left = mergeSort(a.slice(0, m)), right = mergeSort(a.slice(m)), out = [];
+        let i = 0, j = 0;
+        while (i < left.length && j < right.length) out.push(left[i] <= right[j] ? left[i++] : right[j++]);
+        return out.concat(left.slice(i), right.slice(j));
+}`, `def merge_sort(a):
+    if len(a) < 2:
+        return a.copy()
+    mid = len(a) // 2
+    left, right = merge_sort(a[:mid]), merge_sort(a[mid:])
+    out = []
+    i = j = 0
+    while i < len(left) and j < len(right):
+        if left[i] <= right[j]:
+            out.append(left[i]); i += 1
+        else:
+            out.append(right[j]); j += 1
+    return out + left[i:] + right[j:]`, "sort", "Merge sorted halves by comparing their leading unconsumed values; taking from the left on ties preserves stability."),
+      Q("Quick sort", "Partition", "Return a sorted copy using Lomuto partitioning.", `function quickSort(a) {
+  const out = a.slice();
+  function sort(lo, hi) {
+    if (lo >= hi) return;
+    const pivot = out[hi]; let p = lo;
+    for (let i = lo; i < hi; i++) if (out[i] < pivot) [out[i], out[p++]] = [out[p], out[i]];
+    [out[p], out[hi]] = [out[hi], out[p]];
+    sort(lo, p - 1); sort(p + 1, hi);
+  }
+  sort(0, out.length - 1);
+  return out;
+}`, `def quick_sort(a):
+    out = a.copy()
+    def sort(lo, hi):
+        if lo >= hi:
+            return
+        pivot, p = out[hi], lo
+        for i in range(lo, hi):
+            if out[i] < pivot:
+                out[i], out[p] = out[p], out[i]
+                p += 1
+        out[p], out[hi] = out[hi], out[p]
+        sort(lo, p - 1)
+        sort(p + 1, hi)
+    sort(0, len(out) - 1)
+    return out`, "sort", "Worst-case recursion depth is O(n) for consistently poor pivots; randomized pivots reduce this risk."),
+      Q("Find a peak element", "Binary search", "Return an index whose value is greater than its existing neighbors.", `function peakIndex(a) {
+  let lo = 0, hi = a.length - 1;
+  while (lo < hi) {
+    const m = Math.floor((lo + hi) / 2);
+    if (a[m] < a[m + 1]) lo = m + 1; else hi = m;
+  }
+  return a.length ? lo : -1;
+}`, `def peak_index(a):
+    if not a:
+        return -1
+    lo, hi = 0, len(a) - 1
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if a[mid] < a[mid + 1]:
+            lo = mid + 1
+        else:
+            hi = mid
+    return lo`, "binary", "A peak need not be the global maximum; the virtual edges are treated as negative infinity."),
+      Q("Search in a rotated sorted array", "Modified binary search", "Search a rotated ascending array of distinct values; return index or -1.", `function searchRotated(a, target) {
+  let lo = 0, hi = a.length - 1;
+  while (lo <= hi) {
+    const m = Math.floor((lo + hi) / 2);
+    if (a[m] === target) return m;
+    if (a[lo] <= a[m]) {
+      if (a[lo] <= target && target < a[m]) hi = m - 1; else lo = m + 1;
+    } else {
+      if (a[m] < target && target <= a[hi]) lo = m + 1; else hi = m - 1;
+    }
+  }
+  return -1;
+}`, `def search_rotated(a, target):
+    lo, hi = 0, len(a) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if a[mid] == target:
+            return mid
+        if a[lo] <= a[mid]:
+            if a[lo] <= target < a[mid]:
+                hi = mid - 1
+            else:
+                lo = mid + 1
+        elif a[mid] < target <= a[hi]:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return -1`, "binary", "Distinct values make it possible to identify the sorted half; duplicates need extra handling."),
+      Q("Square root using binary search", "Binary search", "Return floor(sqrt(n)) for a non-negative integer.", `function integerSqrt(n) {
+  if (n < 0) throw new RangeError("n must be non-negative");
+  let lo = 0, hi = n, answer = 0;
+  while (lo <= hi) {
+    const m = Math.floor((lo + hi) / 2);
+    if (m === 0 || m <= n / m) { answer = m; lo = m + 1; } else hi = m - 1;
+  }
+  return answer;
+}`, `def integer_sqrt(n):
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    lo, hi, answer = 0, n, 0
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if mid == 0 or mid <= n // mid:
+            answer, lo = mid, mid + 1
+        else:
+            hi = mid - 1
+    return answer`, "binary", "Compare using division rather than mid*mid to avoid overflow in fixed-width integer languages."),
+      Q("Kth largest element", "Sort + index", "Return the k-th largest value (k is 1-based); duplicates count.", `function kthLargest(a, k) {
+  if (k < 1 || k > a.length) throw new RangeError("invalid k");
+  return a.slice().sort((x, y) => y - x)[k - 1];
+}`, `def kth_largest(a, k):
+    if not 1 <= k <= len(a):
+        raise ValueError("invalid k")
+    return sorted(a, reverse=True)[k - 1]`, "sort", "A duplicate value occupies its own rank; a heap/quickselect can improve performance when k is small."),
+      Q("Kth smallest element", "Sort + index", "Return the k-th smallest value (k is 1-based); duplicates count.", `function kthSmallest(a, k) {
+  if (k < 1 || k > a.length) throw new RangeError("invalid k");
+  return a.slice().sort((x, y) => x - y)[k - 1];
+}`, `def kth_smallest(a, k):
+    if not 1 <= k <= len(a):
+        raise ValueError("invalid k")
+    return sorted(a)[k - 1]`, "sort", "Validate k before indexing; default JavaScript sort would compare numbers as strings."),
+      Q("Median of two sorted arrays", "Binary partition", "Return the median in O(log(min(m,n))); inputs are ascending.", `function medianSorted(a, b) {
+        if (!a.length && !b.length) throw new RangeError("at least one value is required");
+        if (a.length > b.length) return medianSorted(b, a);
+  let lo = 0, hi = a.length;
+  while (lo <= hi) {
+    const i = Math.floor((lo + hi) / 2), j = Math.floor((a.length + b.length + 1) / 2) - i;
+    const al = i ? a[i - 1] : -Infinity, ar = i < a.length ? a[i] : Infinity;
+    const bl = j ? b[j - 1] : -Infinity, br = j < b.length ? b[j] : Infinity;
+    if (al <= br && bl <= ar) return (a.length + b.length) % 2 ? Math.max(al, bl) : (Math.max(al, bl) + Math.min(ar, br)) / 2;
+    if (al > br) hi = i - 1; else lo = i + 1;
+  }
+  throw new Error("inputs must be sorted");
+}`, `def median_sorted(a, b):
+    if not a and not b:
+        raise ValueError("at least one value is required")
+    if len(a) > len(b):
+        a, b = b, a
+    lo, hi = 0, len(a)
+    while lo <= hi:
+        i = (lo + hi) // 2
+        j = (len(a) + len(b) + 1) // 2 - i
+        al = a[i - 1] if i else float("-inf")
+        ar = a[i] if i < len(a) else float("inf")
+        bl = b[j - 1] if j else float("-inf")
+        br = b[j] if j < len(b) else float("inf")
+        if al <= br and bl <= ar:
+            if (len(a) + len(b)) % 2:
+                return max(al, bl)
+            return (max(al, bl) + min(ar, br)) / 2
+        if al > br:
+            hi = i - 1
+        else:
+            lo = i + 1
+    raise ValueError("inputs must be sorted")`, "binary", "Partition the shorter array; the empty+empty case has no median and should be rejected in production.")
+    ]
+  },
+  {
+    title: "Level 4 · Maps & sets",
+    questions: [
+      Q("Frequency of array elements using an object", "Hash map", "Return an object/dictionary containing each value's count.", `function elementCounts(a) {
+  const counts = {};
+  for (const x of a) counts[x] = (counts[x] ?? 0) + 1;
+  return counts;
+}`, `def element_counts(a):
+    counts = {}
+    for x in a:
+        counts[x] = counts.get(x, 0) + 1
+    return counts`, "hashmap", "This object version is for primitive string/number keys; use Map if keys may collide with object property names."),
+      Q("Find duplicates using a Set", "Set membership", "Return values that appear more than once, once each.", `function findDuplicates(a) {
+  const seen = new Set(), duplicate = new Set();
+  for (const x of a) seen.has(x) ? duplicate.add(x) : seen.add(x);
+  return [...duplicate];
+}`, `def find_duplicates(a):
+    seen, duplicate = set(), set()
+    for x in a:
+        (duplicate if x in seen else seen).add(x)
+    return list(duplicate)`, "set", "Set result order is first duplicate-detection order in JavaScript; Python set order is unspecified."),
+      Q("Find unique elements", "Set", "Return the distinct values from an array/list.", `function unique(a) { return [...new Set(a)]; }`, `def unique(a):
+    return list(dict.fromkeys(a))`, "set", "These preserve first-seen order; Python dict keys must be hashable."),
+      Q("First non-repeating element", "Frequency map", "Return the first array value whose frequency is one.", `function firstUnique(a) {
+  const counts = new Map();
+  for (const x of a) counts.set(x, (counts.get(x) || 0) + 1);
+  return a.find(x => counts.get(x) === 1) ?? null;
+}`, `from collections import Counter
+
+def first_unique(a):
+    counts = Counter(a)
+    return next((x for x in a if counts[x] == 1), None)`, "hashmap", "Count first, then scan original order; return null/None when all values repeat."),
+      Q("Group anagrams", "Canonical key", "Group words by sorted lowercase letters; preserve word order within groups.", `function groupAnagrams(words) {
+  const groups = new Map();
+  for (const word of words) {
+    const key = Array.from(word.toLowerCase()).sort().join("");
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(word);
+  }
+  return [...groups.values()];
+}`, `from collections import defaultdict
+
+def group_anagrams(words):
+    groups = defaultdict(list)
+    for word in words:
+        groups["".join(sorted(word.lower()))].append(word)
+    return list(groups.values())`, "hashmap", "Sorting letters is simple but costs O(m log m) per word; lowercase normalization intentionally ignores case."),
+      Q("Two-sum using a hash map", "Complement lookup", "Return the indices of two distinct entries summing to target, or null/None.", `function twoSum(a, target) {
+  const index = new Map();
+  for (let i = 0; i < a.length; i++) {
+    const need = target - a[i];
+    if (index.has(need)) return [index.get(need), i];
+    index.set(a[i], i);
+  }
+  return null;
+}`, `def two_sum(a, target):
+    index = {}
+    for i, x in enumerate(a):
+        need = target - x
+        if need in index:
+            return index[need], i
+        index[x] = i
+    return None`, "hashmap", "Look up the complement before storing the current value so an item cannot pair with itself."),
+      Q("Intersection using Set", "Set intersection", "Return unique shared values.", `function intersection(a, b) {
+  const right = new Set(b);
+  return [...new Set(a)].filter(x => right.has(x));
+}`, `def intersection(a, b):
+    return list(set(a) & set(b))`, "set", "Deduplicate each side; Python's set result order is not guaranteed."),
+      Q("Most frequent element", "Frequency map", "Return the most frequent value; ties go to the first seen.", `function mostFrequent(a) {
+  const counts = new Map(); let best, max = 0;
+  for (const x of a) { const n = (counts.get(x) || 0) + 1; counts.set(x, n); if (n > max) { best = x; max = n; } }
+  return max ? best : null;
+}`, `from collections import Counter
+
+def most_frequent(a):
+    if not a:
+        return None
+    counts = Counter(a)
+    return next(x for x in a if counts[x] == max(counts.values()))`, "hashmap", "Explicitly return null/None for empty input; the tie rule is first-seen."),
+      Q("Group employees by department", "Hash map grouping", "Return a mapping from department name to its employee records.", `function groupByDepartment(employees) {
+  const groups = new Map();
+  for (const employee of employees) {
+    const key = employee.department;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(employee);
+  }
+  return groups;
+}`, `from collections import defaultdict
+
+def group_by_department(employees):
+    groups = defaultdict(list)
+    for employee in employees:
+        groups[employee["department"]].append(employee)
+    return dict(groups)`, "hashmap", "Each employee must have a department field; Map allows arbitrary keys while dictionary keys need to be hashable."),
+      Q("Convert an array into an object", "Index mapping", "Map each item to an object property keyed by its id.", `function indexById(items) {
+  return Object.fromEntries(items.map(item => [item.id, item]));
+}`, `def index_by_id(items):
+    return {item["id"]: item for item in items}`, "hashmap", "Duplicate IDs overwrite earlier values; validate uniqueness if overwriting is not acceptable."),
+      Q("Flatten a nested object", "Depth-first traversal", "Flatten nested plain objects into dotted paths; arrays and other values remain leaves.", `function flattenObject(obj, prefix = "", out = {}) {
+  for (const [key, value] of Object.entries(obj)) {
+    const path = prefix ? prefix + "." + key : key;
+    if (value && Object.getPrototypeOf(value) === Object.prototype) flattenObject(value, path, out);
+    else out[path] = value;
+  }
+  return out;
+}`, `def flatten_object(obj, prefix=""):
+    out = {}
+    for key, value in obj.items():
+        path = f"{prefix}.{key}" if prefix else str(key)
+        if isinstance(value, dict):
+            out.update(flatten_object(value, path))
+        else:
+            out[path] = value
+    return out`, "recursion", "Arrays are intentionally treated as leaves; dotted keys can collide with real keys containing dots."),
+      Q("Difference between two objects", "Shallow comparison", "Return keys whose values differ or are missing in either shallow object.", `function objectDiff(a, b) {
+  const diff = {};
+  for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    if (!Object.hasOwn(a, key) || !Object.hasOwn(b, key) || !Object.is(a[key], b[key]))
+      diff[key] = { before: a[key], after: b[key] };
+  }
+  return diff;
+}`, `def object_diff(a, b):
+    return {key: (a.get(key), b.get(key))
+            for key in a.keys() | b.keys()
+            if key not in a or key not in b or a[key] != b[key]}`, "hashmap", "This is shallow; nested objects need recursive comparison. An absent key and a present key with None are distinguishable by membership checks."),
+      Q("Word frequency in a paragraph", "Tokenize + count", "Count case-insensitive alphanumeric words.", `function wordFrequency(text) {
+  const counts = new Map();
+  for (const word of text.toLowerCase().match(/[\\p{L}\\p{N}]+/gu) || [])
+    counts.set(word, (counts.get(word) || 0) + 1);
+  return counts;
+}`, `import re
+from collections import Counter
+
+def word_frequency(text):
+    return Counter(re.findall(r"\\w+", text.casefold()))`, "hashmap", "Tokenization rules differ for apostrophes and languages; choose a policy that fits the text."),
+      Q("Common values across multiple arrays", "Set intersection", "Return unique values found in every array; no arrays returns an empty list.", `function commonAcross(arrays) {
+  if (!arrays.length) return [];
+  let common = new Set(arrays[0]);
+  for (const a of arrays.slice(1)) {
+    const current = new Set(a);
+    common = new Set([...common].filter(x => current.has(x)));
+  }
+  return [...common];
+}`, `def common_across(arrays):
+    if not arrays:
+        return []
+    common = set(arrays[0])
+    for values in arrays[1:]:
+        common.intersection_update(values)
+    return list(common)`, "set", "Intersection only shrinks; if an input is empty, the result becomes empty."),
+      Q("Implement an LRU cache", "Hash map + ordered map", "Least recently used entry is evicted when capacity is exceeded.", `class LRUCache {
+  constructor(capacity) { this.capacity = capacity; this.items = new Map(); }
+  get(key) {
+    if (!this.items.has(key)) return -1;
+    const value = this.items.get(key); this.items.delete(key); this.items.set(key, value);
+    return value;
+  }
+  put(key, value) {
+    if (this.items.has(key)) this.items.delete(key);
+    this.items.set(key, value);
+    if (this.items.size > this.capacity) this.items.delete(this.items.keys().next().value);
+  }
+}`, `from collections import OrderedDict
+
+class LRUCache:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.items = OrderedDict()
+    def get(self, key):
+        if key not in self.items:
+            return -1
+        self.items.move_to_end(key)
+        return self.items[key]
+    def put(self, key, value):
+        if key in self.items:
+            del self.items[key]
+        self.items[key] = value
+        if len(self.items) > self.capacity:
+            self.items.popitem(last=False)`, "lru", "Map and OrderedDict preserve recency order here; capacity zero immediately evicts every inserted item.", "These are common implementations. If keys/values can be undefined, JavaScript should use has() rather than treating get() === undefined as a miss.")
+    ]
+  },
+  {
+    title: "Level 3 · Strings",
+    questions: [
+      Q("Reverse a string", "Two pointers", "Return the string's characters in reverse order.", `function reverseString(s) {
+  return Array.from(s).reverse().join("");
+}`, `def reverse_string(s):
+    return s[::-1]`, "twoPointers", "Array.from iterates Unicode code points; splitting a JavaScript string directly can break surrogate pairs."),
+      Q("Check string palindrome", "Two pointers", "Ignore case and non-alphanumeric characters before comparing.", `function isPalindrome(s) {
+  const chars = Array.from(s.toLowerCase()).filter(c => /[a-z0-9]/.test(c));
+  return chars.join("") === chars.slice().reverse().join("");
+}`, `def is_palindrome(s):
+    chars = [c for c in s.casefold() if c.isalnum()]
+    return chars == chars[::-1]`, "twoPointers", "This intentionally ignores punctuation and spaces; change normalization if the task requires literal comparison."),
+      Q("Count vowels and consonants", "Character scan", "Count English letters; ignore digits, spaces, and punctuation.", `function countVowelsConsonants(s) {
+  let vowels = 0, consonants = 0;
+  for (const c of s.toLowerCase()) if (/[a-z]/.test(c)) "aeiou".includes(c) ? vowels++ : consonants++;
+  return { vowels, consonants };
+}`, `def count_vowels_consonants(s):
+    vowels = sum(c.lower() in "aeiou" for c in s if c.isascii() and c.isalpha())
+    consonants = sum(c.isascii() and c.isalpha() and c.lower() not in "aeiou" for c in s)
+    return {"vowels": vowels, "consonants": consonants}`, "arrayScan", "This defines English vowels and ASCII letters; accented letters need a language-specific policy."),
+      Q("Count words in a sentence", "Whitespace split", "Count non-empty whitespace-separated words.", `function wordCount(s) {
+  return s.trim() ? s.trim().split(/\\s+/).length : 0;
+}`, `def word_count(s):
+    return len(s.split())`, "arrayScan", "Trim/check empty text so it does not count as one word."),
+      Q("Find duplicate characters", "Frequency map", "Return characters occurring more than once, without repeating them in output.", `function duplicateChars(s) {
+  const counts = new Map(), out = [];
+  for (const c of s) counts.set(c, (counts.get(c) || 0) + 1);
+  for (const [c, n] of counts) if (n > 1) out.push(c);
+  return out;
+}`, `from collections import Counter
+
+def duplicate_chars(s):
+    return [c for c, n in Counter(s).items() if n > 1]`, "hashmap", "Map/Counter preserve first-seen order; case-sensitive characters are treated as different."),
+      Q("Frequency of each character", "Hash map", "Return counts for each character.", `function charFrequency(s) {
+  const counts = new Map();
+  for (const c of s) counts.set(c, (counts.get(c) || 0) + 1);
+  return counts;
+}`, `from collections import Counter
+
+def char_frequency(s):
+    return dict(Counter(s))`, "hashmap", "Character counts are case-sensitive unless you normalize the input first."),
+      Q("First non-repeating character", "Frequency map", "Return the first character with count one, or null/None.", `function firstUniqueChar(s) {
+  const counts = new Map();
+  for (const c of s) counts.set(c, (counts.get(c) || 0) + 1);
+  return Array.from(s).find(c => counts.get(c) === 1) ?? null;
+}`, `from collections import Counter
+
+def first_unique_char(s):
+    counts = Counter(s)
+    return next((c for c in s if counts[c] == 1), None)`, "hashmap", "Count first, then scan in original order; returning the first map key is not enough."),
+      Q("First repeating character", "Hash set", "Return the first character whose second occurrence is encountered.", `function firstRepeatingChar(s) {
+  const seen = new Set();
+  for (const c of s) { if (seen.has(c)) return c; seen.add(c); }
+  return null;
+}`, `def first_repeating_char(s):
+    seen = set()
+    for c in s:
+        if c in seen:
+            return c
+        seen.add(c)
+    return None`, "set", "This means first repeated while scanning left-to-right, not the earliest character that appears again later."),
+      Q("Remove duplicate characters", "Ordered set", "Keep each character's first occurrence, preserving order.", `function uniqueChars(s) {
+  return Array.from(new Set(s)).join("");
+}`, `def unique_chars(s):
+    return "".join(dict.fromkeys(s))`, "set", "Order preservation is part of the requirement; an unordered set alone is insufficient."),
+      Q("Check whether two strings are anagrams", "Frequency counts", "Compare case-insensitively while ignoring whitespace.", `function areAnagrams(a, b) {
+  const clean = s => Array.from(s.toLowerCase()).filter(c => !/\\s/.test(c)).sort().join("");
+  return clean(a) === clean(b);
+}`, `def are_anagrams(a, b):
+    clean = lambda s: sorted(c.casefold() for c in s if not c.isspace())
+    return clean(a) == clean(b)`, "hashmap", "Both inputs must use the same normalization policy; punctuation is retained in this version."),
+      Q("Longest word in a sentence", "Single scan", "Return the first longest whitespace-separated word, or empty string.", `function longestWord(s) {
+  return s.trim().split(/\\s+/).filter(Boolean).reduce((best, w) => w.length > best.length ? w : best, "");
+}`, `def longest_word(s):
+    return max(s.split(), key=len, default="")`, "arrayScan", "Ties keep the first word; punctuation is not stripped."),
+      Q("Capitalize first letter of each word", "Split + map", "Uppercase each word's first character and preserve remaining letters.", `function capitalizeWords(s) {
+  return s.replace(/\\b[a-z]/gi, c => c.toUpperCase());
+}`, `def capitalize_words(s):
+    return " ".join(w[:1].upper() + w[1:] for w in s.split(" "))`, "arrayBuild", "This preserves repeated spaces in JavaScript; Python's split on a literal space also preserves empty segments."),
+      Q("Reverse each word in a sentence", "Split + reverse", "Reverse letters within each whitespace-separated word; retain separators.", `function reverseEachWord(s) {
+  return s.replace(/\\S+/g, w => Array.from(w).reverse().join(""));
+}`, `def reverse_each_word(s):
+    import re
+    return re.sub(r"\\S+", lambda m: m.group()[::-1], s)`, "arrayBuild", "Operating on non-whitespace runs preserves the original spaces and tabs."),
+      Q("Longest substring without repeats", "Sliding window", "Return the length of the longest substring with all distinct characters.", `function longestUniqueSubstring(s) {
+  const last = new Map(); let left = 0, best = 0, i = 0;
+  for (const c of s) { if (last.has(c)) left = Math.max(left, last.get(c) + 1); last.set(c, i); best = Math.max(best, i - left + 1); i++; }
+  return best;
+}`, `def longest_unique_substring(s):
+    last, left, best = {}, 0, 0
+    for i, c in enumerate(s):
+        left = max(left, last.get(c, -1) + 1)
+        last[c] = i
+        best = max(best, i - left + 1)
+    return best`, "sliding", "Move the left edge forward only; a repeat seen before the current window must not move it backward."),
+      Q("Check whether one string is a rotation of another", "Substring check", "Return whether b is a rotation of a.", `function isRotation(a, b) {
+  return a.length === b.length && (a + a).includes(b);
+}`, `def is_rotation(a, b):
+    return len(a) == len(b) and b in (a + a)`, "substring", "The doubled string covers every possible rotation start."),
+      Q("Most repeated character", "Frequency map", "Return the most frequent character; ties go to the first seen.", `function mostRepeatedChar(s) {
+  const counts = new Map(); let best = null, max = 0;
+  for (const c of s) { const n = (counts.get(c) || 0) + 1; counts.set(c, n); if (n > max) { best = c; max = n; } }
+  return best;
+}`, `from collections import Counter
+
+def most_repeated_char(s):
+    if not s:
+        return None
+    counts = Counter(s)
+    return max(dict.fromkeys(s), key=counts.get)`, "hashmap", "Empty input returns null/None; the strict greater-than update preserves the first-seen tie winner."),
+      Q("Count uppercase and lowercase characters", "Character scan", "Count Unicode uppercase and lowercase letters; ignore other characters.", `function letterCaseCounts(s) {
+  let upper = 0, lower = 0;
+  for (const c of s) { if (c.toUpperCase() !== c.toLowerCase()) c === c.toUpperCase() ? upper++ : lower++; }
+  return { upper, lower };
+}`, `def letter_case_counts(s):
+    return {"upper": sum(c.isupper() for c in s), "lower": sum(c.islower() for c in s)}`, "arrayScan", "Punctuation and digits have no letter case and are excluded."),
+      Q("Remove special characters", "Filter", "Keep ASCII letters, digits, and whitespace.", `function removeSpecial(s) {
+  return s.replace(/[^a-z0-9\\s]/gi, "");
+}`, `def remove_special(s):
+    return "".join(c for c in s if c.isascii() and (c.isalnum() or c.isspace()))`, "arrayBuild", "This intentionally removes non-ASCII letters; change the character policy for multilingual text."),
+      Q("Common characters between strings", "Set membership", "Return unique shared characters in first-string order.", `function commonChars(a, b) {
+  const right = new Set(b), added = new Set(), out = [];
+  for (const c of a) if (right.has(c) && !added.has(c)) { out.push(c); added.add(c); }
+  return out.join("");
+}`, `def common_chars(a, b):
+    right, added, out = set(b), set(), []
+    for c in a:
+        if c in right and c not in added:
+            out.append(c)
+            added.add(c)
+    return "".join(out)`, "set", "This returns unique shared characters, not the multiset intersection."),
+      Q("Longest palindromic substring", "Expand around center", "Return one longest contiguous palindrome; ties choose the leftmost.", `function longestPalindrome(s) {
+  const a = Array.from(s); let best = [0, 0];
+  for (let c = 0; c < a.length; c++) for (const [l0, r0] of [[c, c], [c, c + 1]]) {
+    let l = l0, r = r0;
+    while (l >= 0 && r < a.length && a[l] === a[r]) { if (r - l > best[1] - best[0]) best = [l, r]; l--; r++; }
+  }
+  return a.slice(best[0], best[1] + 1).join("");
+}`, `def longest_palindrome(s):
+    best = (0, 0)
+    for center in range(len(s)):
+        for left, right in ((center, center), (center, center + 1)):
+            while left >= 0 and right < len(s) and s[left] == s[right]:
+                if right - left > best[1] - best[0]:
+                    best = (left, right)
+                left -= 1
+                right += 1
+    return s[best[0]:best[1] + 1]`, "twoPointers", "Expand at both odd and even centers; strict length updates keep the leftmost palindrome on ties.", "O(n²) worst-case time; O(n) space for the JavaScript code-point array.")
+    ]
+  },
+  {
+    title: "Level 2 · Arrays",
+    questions: [
+      Q("Largest element", "Single scan", "Return the largest array value; input must not be empty.", `function largest(a) {
+  if (!a.length) throw new RangeError("array must not be empty");
+  let best = a[0];
+  for (const x of a) if (x > best) best = x;
+  return best;
+}`, `def largest(a):
+    if not a:
+        raise ValueError("array must not be empty")
+    best = a[0]
+    for x in a:
+        if x > best:
+            best = x
+    return best`, "arrayScan", "Do not initialize to 0; the array may contain only negative numbers."),
+      Q("Smallest element", "Single scan", "Return the smallest array value; input must not be empty.", `function smallest(a) {
+  if (!a.length) throw new RangeError("array must not be empty");
+  let best = a[0];
+  for (const x of a) if (x < best) best = x;
+  return best;
+}`, `def smallest(a):
+    if not a:
+        raise ValueError("array must not be empty")
+    best = a[0]
+    for x in a:
+        if x < best:
+            best = x
+    return best`, "arrayScan", "Initialize from the first element so the result works for positive and negative inputs."),
+      Q("Second-largest distinct element", "Single scan", "Return the second-largest distinct value, or null/None if it does not exist.", `function secondLargest(a) {
+  let first = -Infinity, second = -Infinity;
+  for (const x of a) {
+    if (x > first) [second, first] = [first, x];
+    else if (x < first && x > second) second = x;
+  }
+  return second === -Infinity ? null : second;
+}`, `def second_largest(a):
+    first = second = None
+    for x in a:
+        if first is None or x > first:
+            first, second = x, first
+        elif x != first and (second is None or x > second):
+            second = x
+    return second`, "arrayScan", "This asks for a distinct value; repeated copies of the maximum do not count."),
+      Q("Second-smallest distinct element", "Single scan", "Return the second-smallest distinct value, or null/None if absent.", `function secondSmallest(a) {
+  let first = Infinity, second = Infinity;
+  for (const x of a) {
+    if (x < first) [second, first] = [first, x];
+    else if (x > first && x < second) second = x;
+  }
+  return second === Infinity ? null : second;
+}`, `def second_smallest(a):
+    first = second = None
+    for x in a:
+        if first is None or x < first:
+            first, second = x, first
+        elif x != first and (second is None or x < second):
+            second = x
+    return second`, "arrayScan", "Distinctness matters: for [2, 2, 5], the answer is 5."),
+      Q("Reverse an array without reverse()", "Two pointers", "Return a reversed copy without calling reverse().", `function reversedCopy(a) {
+  const out = a.slice();
+  for (let l = 0, r = out.length - 1; l < r; l++, r--) {
+    [out[l], out[r]] = [out[r], out[l]];
+  }
+  return out;
+}`, `def reversed_copy(a):
+    out = a.copy()
+    left, right = 0, len(out) - 1
+    while left < right:
+        out[left], out[right] = out[right], out[left]
+        left += 1
+        right -= 1
+    return out`, "twoPointers", "Copy first to preserve the original array; swap each pair at most once."),
+      Q("Sum all array elements", "Accumulator", "Return the numeric sum (0 for an empty array).", `function arraySum(a) {
+  let total = 0;
+  for (const x of a) total += x;
+  return total;
+}`, `def array_sum(a):
+    total = 0
+    for x in a:
+        total += x
+    return total`, "arrayScan", "Start at additive identity 0 so an empty array has a well-defined sum."),
+      Q("Average of array elements", "Sum + length", "Return the arithmetic mean; empty input returns null/None.", `function average(a) {
+  if (!a.length) return null;
+  return a.reduce((sum, x) => sum + x, 0) / a.length;
+}`, `def average(a):
+    return sum(a) / len(a) if a else None`, "arrayScan", "The mean is undefined for an empty array; avoid dividing by zero."),
+      Q("Count even and odd numbers", "One pass", "Return counts for integer array values.", `function countEvenOdd(a) {
+  let even = 0, odd = 0;
+  for (const x of a) x % 2 === 0 ? even++ : odd++;
+  return { even, odd };
+}`, `def count_even_odd(a):
+    even = sum(x % 2 == 0 for x in a)
+    return {"even": even, "odd": len(a) - even}`, "arrayScan", "Zero is even; modulo works with negative integers as well."),
+      Q("Remove duplicate elements", "Set + order", "Keep only the first occurrence of each value, preserving order.", `function uniqueValues(a) {
+  const seen = new Set(), out = [];
+  for (const x of a) if (!seen.has(x)) { seen.add(x); out.push(x); }
+  return out;
+}`, `def unique_values(a):
+    return list(dict.fromkeys(a))`, "set", "JavaScript Set and modern Python dict preserve insertion order; Python values must be hashable."),
+      Q("Find duplicate elements", "Frequency set", "Return each duplicated value once, in order of its second occurrence.", `function duplicates(a) {
+  const seen = new Set(), added = new Set(), out = [];
+  for (const x of a) {
+    if (seen.has(x) && !added.has(x)) { out.push(x); added.add(x); }
+    seen.add(x);
+  }
+  return out;
+}`, `def duplicates(a):
+    seen, added, out = set(), set(), []
+    for x in a:
+        if x in seen and x not in added:
+            out.append(x)
+            added.add(x)
+        seen.add(x)
+    return out`, "set", "Separate sets prevent a value occurring 3+ times from being returned repeatedly."),
+      Q("Missing number from 1 to N", "Arithmetic sum", "Input contains distinct values from 1..n with exactly one missing.", `function missingNumber(a, n) {
+  return n * (n + 1) / 2 - a.reduce((sum, x) => sum + x, 0);
+}`, `def missing_number(a, n):
+    return n * (n + 1) // 2 - sum(a)`, "arithmetic", "The stated range and exactly-one-missing assumption are required; validate separately if inputs are untrusted."),
+      Q("Frequency of each element", "Hash map", "Return a map/object from each value to its count.", `function frequencies(a) {
+  const counts = new Map();
+  for (const x of a) counts.set(x, (counts.get(x) || 0) + 1);
+  return counts;
+}`, `def frequencies(a):
+    counts = {}
+    for x in a:
+        counts[x] = counts.get(x, 0) + 1
+    return counts`, "hashmap", "A Map supports arbitrary JavaScript keys; ordinary Python dict keys must be hashable."),
+      Q("Move all zeros to the end", "Stable compaction", "Return a copy with nonzero values in original order followed by zeros.", `function moveZeros(a) {
+  const out = a.filter(x => x !== 0);
+  while (out.length < a.length) out.push(0);
+  return out;
+}`, `def move_zeros(a):
+    out = [x for x in a if x != 0]
+    return out + [0] * (len(a) - len(out))`, "twoPointers", "Filtering preserves the relative order of nonzero values; this returns a new array."),
+      Q("Common elements of two arrays", "Set membership", "Return unique common values, in the first array's order.", `function commonElements(a, b) {
+  const lookup = new Set(b), added = new Set(), out = [];
+  for (const x of a) if (lookup.has(x) && !added.has(x)) { out.push(x); added.add(x); }
+  return out;
+}`, `def common_elements(a, b):
+    lookup, added, out = set(b), set(), []
+    for x in a:
+        if x in lookup and x not in added:
+            out.append(x)
+            added.add(x)
+    return out`, "set", "The output is unique by value; use a multiset/count map if repeated matches are wanted."),
+      Q("Merge two arrays", "Concatenation", "Return a new array containing a followed by b.", `function mergeArrays(a, b) {
+  return [...a, ...b];
+}`, `def merge_arrays(a, b):
+    return a + b`, "arrayBuild", "Concatenation creates a new outer array/list; nested objects remain shared references."),
+      Q("Sort without sort()", "Bubble sort", "Return a numerically sorted copy using bubble sort.", `function bubbleSort(a) {
+  const out = a.slice();
+  for (let end = out.length - 1; end > 0; end--) {
+    let swapped = false;
+    for (let i = 0; i < end; i++) if (out[i] > out[i + 1]) {
+      [out[i], out[i + 1]] = [out[i + 1], out[i]]; swapped = true;
+    }
+    if (!swapped) break;
+  }
+  return out;
+}`, `def bubble_sort(a):
+    out = a.copy()
+    for end in range(len(out) - 1, 0, -1):
+        swapped = False
+        for i in range(end):
+            if out[i] > out[i + 1]:
+                out[i], out[i + 1] = out[i + 1], out[i]
+                swapped = True
+        if not swapped:
+            break
+    return out`, "sort", "The early-exit flag avoids extra passes on already sorted input; bubble sort is still quadratic."),
+      Q("Two numbers sum to target", "Hash set", "Return the first matching pair of values, or null/None if none exists.", `function twoSumValues(a, target) {
+  const seen = new Set();
+  for (const x of a) {
+    const need = target - x;
+    if (seen.has(need)) return [need, x];
+    seen.add(x);
+  }
+  return null;
+}`, `def two_sum_values(a, target):
+    seen = set()
+    for x in a:
+        need = target - x
+        if need in seen:
+            return need, x
+        seen.add(x)
+    return None`, "hashmap", "Insert only after checking so one element cannot be used twice; for indices, store value-to-index instead."),
+      Q("Maximum difference (buy before sell)", "Running minimum", "Return the largest later-minus-earlier difference, or 0 if no profit is possible.", `function maxLaterDifference(a) {
+  if (a.length < 2) return 0;
+  let low = a[0], best = 0;
+  for (let i = 1; i < a.length; i++) {
+    best = Math.max(best, a[i] - low);
+    low = Math.min(low, a[i]);
+  }
+  return best;
+}`, `def max_later_difference(a):
+    if len(a) < 2:
+        return 0
+    low, best = a[0], 0
+    for x in a[1:]:
+        best = max(best, x - low)
+        low = min(low, x)
+    return best`, "arrayScan", "The minimum must come before the candidate; this is not the unrestricted max-min difference."),
+      Q("Rotate left by one", "Rebuild sequence", "Return a left-rotated copy; empty input stays empty.", `function rotateLeftOne(a) {
+  return a.length ? [...a.slice(1), a[0]] : [];
+}`, `def rotate_left_one(a):
+    return a[1:] + a[:1]`, "arrayBuild", "The one-element and empty cases naturally remain unchanged."),
+      Q("Rotate right by K", "Modulo + slicing", "Return a right-rotated copy; negative k rotates left.", `function rotateRight(a, k) {
+  if (!a.length) return [];
+  k = ((k % a.length) + a.length) % a.length;
+  return [...a.slice(-k), ...a.slice(0, -k)];
+}`, `def rotate_right(a, k):
+    if not a:
+        return []
+    k %= len(a)
+    return a[-k:] + a[:-k] if k else a.copy()`, "arrayBuild", "Normalize k modulo the length; handle k=0 explicitly in Python because -0 equals 0."),
+      Q("Intersection of two arrays", "Set intersection", "Return unique values present in both arrays.", `function intersection(a, b) {
+  const right = new Set(b);
+  return [...new Set(a)].filter(x => right.has(x));
+}`, `def intersection(a, b):
+    return list(set(a) & set(b))`, "set", "The Python set result has no guaranteed order; use an ordered pass if order matters."),
+      Q("Union of two arrays", "Set union", "Return unique values, preserving first-seen order across a then b.", `function union(a, b) {
+  return [...new Set([...a, ...b])];
+}`, `def union(a, b):
+    return list(dict.fromkeys([*a, *b]))`, "set", "Set semantics remove duplicates; dict.fromkeys preserves order in modern Python."),
+      Q("Majority element", "Boyer-Moore voting", "Return a value occurring more than n/2 times, or null/None.", `function majorityElement(a) {
+  let candidate, votes = 0;
+  for (const x of a) {
+    if (votes === 0) candidate = x;
+    votes += x === candidate ? 1 : -1;
+  }
+  return a.filter(x => x === candidate).length > a.length / 2 ? candidate : null;
+}`, `def majority_element(a):
+    candidate, votes = None, 0
+    for x in a:
+        if votes == 0:
+            candidate = x
+        votes += 1 if x == candidate else -1
+    return candidate if sum(x == candidate for x in a) > len(a) // 2 else None`, "arrayScan", "Voting finds a candidate, not proof; a second pass verifies the > n/2 condition."),
+      Q("Maximum subarray sum", "Kadane's algorithm", "Return the largest sum of a non-empty contiguous subarray.", `function maxSubarray(a) {
+  if (!a.length) throw new RangeError("array must not be empty");
+  let ending = a[0], best = a[0];
+  for (const x of a.slice(1)) {
+    ending = Math.max(x, ending + x);
+    best = Math.max(best, ending);
+  }
+  return best;
+}`, `def max_subarray(a):
+    if not a:
+        raise ValueError("array must not be empty")
+    ending = best = a[0]
+    for x in a[1:]:
+        ending = max(x, ending + x)
+        best = max(best, ending)
+    return best`, "dp", "Initialize from the first element so an all-negative array returns its largest value, not zero."),
+      Q("Product except self", "Prefix + suffix products", "Return products excluding each index, without division.", `function productExceptSelf(a) {
+  const out = Array(a.length).fill(1);
+  let prefix = 1;
+  for (let i = 0; i < a.length; i++) { out[i] = prefix; prefix *= a[i]; }
+  let suffix = 1;
+  for (let i = a.length - 1; i >= 0; i--) { out[i] *= suffix; suffix *= a[i]; }
+  return out;
+}`, `def product_except_self(a):
+    out = [1] * len(a)
+    prefix = 1
+    for i, x in enumerate(a):
+        out[i] = prefix
+        prefix *= x
+    suffix = 1
+    for i in range(len(a) - 1, -1, -1):
+        out[i] *= suffix
+        suffix *= a[i]
+    return out`, "prefix", "No division means zeros work naturally; output is excluded from auxiliary-space accounting.")
+    ]
+  }
+];
+
+dsaLevels.sort((a, b) => Number(a.title.match(/\d+/)[0]) - Number(b.title.match(/\d+/)[0]));
+window.dsaData = { dsaLevels, dsaNotes };
+})();
+</script>
+<script>
+(function(){
+  const { dsaLevels, dsaNotes } = window.dsaData;
+const levelNav = document.getElementById("levels-nav");
+    const questionNav = document.getElementById("questions-nav");
+    const content = document.getElementById("question-content");
+    let activeLevel = 0;
+    let activeQuestion = 0;
+    const questions = () => dsaLevels[activeLevel].questions;
+    const dsaEscapeHTML = value => String(value).replace(/[&<>"']/g, ch => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    })[ch]);
+
+    function renderLevelNav() {
+      levelNav.innerHTML = dsaLevels.map((level, index) =>
+        `<button class="level-button" type="button" data-level="${index}" aria-current="${index === activeLevel}">${dsaEscapeHTML(level.title)}</button>`
+      ).join("");
+      levelNav.querySelectorAll("[data-level]").forEach(button => button.addEventListener("click", () => {
+        activeLevel = Number(button.dataset.level);
+        activeQuestion = 0;
+        renderAll();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        updateHash();
+      }));
+    }
+
+    function renderQuestionNav() {
+      questionNav.innerHTML = questions().map((question, index) =>
+        `<button class="question-button" type="button" data-question="${index}" aria-current="${index === activeQuestion}"><span class="q-num">${String(index + 1).padStart(2, "0")}.</span>${dsaEscapeHTML(question.title)}</button>`
+      ).join("");
+      questionNav.querySelectorAll("[data-question]").forEach(button => button.addEventListener("click", () => {
+        activeQuestion = Number(button.dataset.question);
+        renderPage();
+        updateHash();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }));
+    }
+
+    function renderPage() {
+      const level = dsaLevels[activeLevel];
+      const question = questions()[activeQuestion];
+      const globalIndex = dsaLevels.slice(0, activeLevel).reduce((sum, item) => sum + item.questions.length, 0) + activeQuestion + 1;
+      const total = dsaLevels.reduce((sum, item) => sum + item.questions.length, 0);
+      const previous = activeQuestion > 0 ? questions()[activeQuestion - 1] : null;
+      const next = activeQuestion < questions().length - 1 ? questions()[activeQuestion + 1] : null;
+      const previousLabel = previous?.title || (activeLevel > 0 ? dsaLevels[activeLevel - 1].questions.at(-1).title : "First question");
+      const nextLabel = next?.title || (activeLevel < dsaLevels.length - 1 ? dsaLevels[activeLevel + 1].questions[0].title : "Last question");
+      const hasPrevious = Boolean(previous || activeLevel > 0);
+      const hasNext = Boolean(next || activeLevel < dsaLevels.length - 1);
+      const notes = dsaNotes[question.note];
+      content.innerHTML = `
+        <section class="problem-head">
+          <div class="eyebrow">${dsaEscapeHTML(level.title)} · ${activeQuestion + 1} of ${questions().length}</div>
+          <h1>${dsaEscapeHTML(question.title)}</h1>
+          <p class="intro">${dsaEscapeHTML(question.summary)}</p>
+          <div class="meta"><span class="pill"><strong>Problem ${globalIndex}</strong> / ${total}</span><span class="pill">${dsaEscapeHTML(question.pattern)}</span></div>
+        </section>
+        <section class="compare" aria-label="Solutions in JavaScript and Python">
+          <article class="card"><div class="card-head"><span class="lang-icon">JS</span><strong>JavaScript</strong><small>Function solution</small></div><div class="code-area"><div class="code-label"><span>Answer</span><span>javascript</span></div><pre><code>${highlightCode(question.js, "javascript")}</code></pre></div></article>
+          <article class="card"><div class="card-head"><span class="lang-icon py">Py</span><strong>Python</strong><small>Function solution</small></div><div class="code-area"><div class="code-label"><span>Answer</span><span>python</span></div><pre><code>${highlightCode(question.py, "python")}</code></pre></div></article>
+        </section>
+        <section class="explanation" aria-label="Explanation">
+          <article class="explain-card"><h2>Why this method?</h2><p>${dsaEscapeHTML(notes.why)}</p></article>
+          <article class="explain-card"><h2>Tricky parts to watch</h2><p>${dsaEscapeHTML(question.tricky || notes.tricky)}</p></article>
+        </section>
+        <p class="complexity"><strong>Complexity:</strong> ${dsaEscapeHTML(question.complexity || notes.complexity)}</p>
+        <nav class="pagination" aria-label="Question pagination">
+          <button class="page-button" id="previous-page" type="button" ${hasPrevious ? "" : "disabled"}><small>← Previous</small><strong>${dsaEscapeHTML(previousLabel)}</strong></button>
+          <span class="page-count">Level ${activeLevel + 1} · Question ${activeQuestion + 1} / ${questions().length}</span>
+          <button class="page-button next" id="next-page" type="button" ${hasNext ? "" : "disabled"}><small>Next →</small><strong>${dsaEscapeHTML(nextLabel)}</strong></button>
+        </nav>
+        <div class="progress" role="progressbar" aria-label="Overall practice progress" aria-valuemin="1" aria-valuemax="${total}" aria-valuenow="${globalIndex}"><div class="progress-bar" style="width:${globalIndex / total * 100}%"></div></div>
+      `;
+      document.getElementById("previous-page").addEventListener("click", () => moveQuestion(-1));
+      document.getElementById("next-page").addEventListener("click", () => moveQuestion(1));
+      document.title = `${question.title} | DSA Practice`;
+    }
+
+    function moveQuestion(step) {
+      const target = activeQuestion + step;
+      if (target >= 0 && target < questions().length) activeQuestion = target;
+      else if (target >= questions().length && activeLevel < dsaLevels.length - 1) {
+        activeLevel++;
+        activeQuestion = 0;
+      } else if (target < 0 && activeLevel > 0) {
+        activeLevel--;
+        activeQuestion = questions().length - 1;
+      } else return;
+      renderAll();
+      updateHash();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function renderAll() {
+      renderLevelNav();
+      renderQuestionNav();
+      renderPage();
+    }
+
+    function updateHash() {
+      history.replaceState(null, "", `#level-${activeLevel + 1}-question-${activeQuestion + 1}`);
+    }
+
+    document.addEventListener("keydown", event => {
+      if (document.getElementById("dsa-app").hidden || event.altKey || event.ctrlKey || event.metaKey || event.target.matches("input,textarea,select,[contenteditable=true]")) return;
+      if (event.key === "ArrowRight") moveQuestion(1);
+      if (event.key === "ArrowLeft") moveQuestion(-1);
+    });
+
+    const match = location.hash.match(/^#level-(\d+)-question-(\d+)$/);
+    if (match) {
+      const requestedLevel = Number(match[1]) - 1;
+      if (requestedLevel >= 0 && requestedLevel < dsaLevels.length) {
+        activeLevel = requestedLevel;
+        const requestedQuestion = Number(match[2]) - 1;
+        activeQuestion = Math.max(0, Math.min(requestedQuestion, dsaLevels[activeLevel].questions.length - 1));
+      }
+    }
+    renderAll();
+})();
+</script>
+</body>
+</html>
